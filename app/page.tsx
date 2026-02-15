@@ -114,14 +114,7 @@ export default function StandListPage() {
         </div>
       ) : stands.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 gap-4">
-          <p className="text-slate-400">スタンドが見つかりません</p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <Plus size={18} />
-            新規追加
-          </button>
+          <p className="text-slate-400">セッション追加で、新しいセッションを追加しましょう！</p>
         </div>
       ) : (
         <>
