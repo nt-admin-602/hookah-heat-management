@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Edit2, Power } from 'lucide-react';
+import { ArrowLeft, Edit2, Power, Trash2, Flame, Sliders } from 'lucide-react';
 import { Stand, Event } from '@/lib/db';
 import {
   getStand,
@@ -24,10 +24,19 @@ export default function StandDetailPage() {
   const [loading, setLoading] = useState(true);
   const [editingField, setEditingField] = useState<'flavor' | 'note' | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
   useEffect(() => {
     loadData();
   }, [standId]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 60000); // 1分ごとに更新
+
+    return () => clearInterval(timer);
+  }, []);
 
   const loadData = async () => {
     setLoading(true);
@@ -78,9 +87,21 @@ export default function StandDetailPage() {
     await loadData();
   };
 
-  const formatTime = (timestamp: number) => {
+  const formatTime = (timestamp?: number) => {
+    if (!timestamp) return '記録なし';
     const date = new Date(timestamp);
-    return date.toLocaleString('ja-JP');
+    return date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const getElapsedMinutes = (timestamp?: number, now: number = Date.now()) => {
+    if (!timestamp) return null;
+    const elapsed = Math.floor((now - timestamp) / 60000);
+    if (elapsed < 1) return '1分';
+    if (elapsed < 60) return `${elapsed}分`;
+    const hours = Math.floor(elapsed / 60);
+    if (hours < 24) return `${hours}時間`;
+    const days = Math.floor(hours / 24);
+    return `${days}日`;
   };
 
   const getEventLabel = (type: Event['type']) => {
@@ -230,21 +251,46 @@ export default function StandDetailPage() {
 
           {/* Last Action */}
           <div className="text-sm text-slate-400 border-t border-slate-700 pt-4">
-            <p>
-              <span className="font-medium">最終操作:</span>{' '}
-              {stand.lastActionType ? (
-                <>
-                  {stand.lastActionType === 'create' && '新規追加'}
-                  {stand.lastActionType === 'ash' && 'すす捨て'}
-                  {stand.lastActionType === 'coal' && '炭交換'}
-                  {stand.lastActionType === 'adjust' && '調整'}
-                  {' - '}
-                  {formatTime(stand.lastActionAt || Date.now())}
-                </>
-              ) : (
-                '未設定'
+            <div className="flex gap-6 mb-2">
+              {stand.lastActionType && (
+                <div className="flex items-center gap-1">
+                  <span className="font-medium">最終メンテナンス:</span>{' '}
+                  {stand.lastActionType === 'create' && (
+                    <>
+                      <span>新規追加</span>
+                    </>
+                  )}
+                  {stand.lastActionType === 'ash' && (
+                    <>
+                      <Trash2 size={14} className="neon-cyan inline" />
+                      <span>すす捨て</span>
+                    </>
+                  )}
+                  {stand.lastActionType === 'coal' && (
+                    <>
+                      <Flame size={14} className="neon-pink inline" />
+                      <span>炭交換</span>
+                    </>
+                  )}
+                  {stand.lastActionType === 'adjust' && (
+                    <>
+                      <Sliders size={14} className="neon-purple inline" />
+                      <span>調整</span>
+                    </>
+                  )}
+                  {' '}
+                  {formatTime(stand.lastActionAt)}
+                </div>
               )}
-            </p>
+              <div>
+                <span className="font-medium">経過時間:</span>{' '}
+                {(() => {
+                  const elapsed = stand.lastActionAt ? Math.floor((currentTime - stand.lastActionAt) / 60000) : null;
+                  const colorClass = elapsed === null ? '' : elapsed > 15 ? 'text-red-400 font-semibold' : elapsed > 10 ? 'text-yellow-400 font-semibold' : '';
+                  return <span className={colorClass}>{getElapsedMinutes(stand.lastActionAt, currentTime) || '—'}</span>;
+                })()}
+              </div>
+            </div>
           </div>
         </div>
       </div>
