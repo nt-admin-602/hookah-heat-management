@@ -14,10 +14,19 @@ export default function StandListPage() {
   const [formData, setFormData] = useState({ number: '', flavor: '' });
   const [flavors, setFlavors] = useState<string[]>([]);
   const [showFlavorList, setShowFlavorList] = useState(false);
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
   useEffect(() => {
     loadStands();
     loadFlavors();
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 60000); // 1分ごとに更新
+
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -90,9 +99,9 @@ export default function StandListPage() {
     return date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
   };
 
-  const getElapsedMinutes = (timestamp?: number) => {
+  const getElapsedMinutes = (timestamp?: number, now: number = Date.now()) => {
     if (!timestamp) return null;
-    const elapsed = Math.floor((Date.now() - timestamp) / 60000);
+    const elapsed = Math.floor((now - timestamp) / 60000);
     if (elapsed < 1) return '1分';
     if (elapsed < 60) return `${elapsed}分`;
     const hours = Math.floor(elapsed / 60);
@@ -140,20 +149,37 @@ export default function StandListPage() {
 
                 <div className="flex gap-6 text-sm text-slate-400 mb-3">
                   {stand.lastActionType && (
-                    <div>
-                      <span className="font-medium">最終:</span>{' '}
-                      {stand.lastActionType === 'ash' && 'すす捨て'}
-                      {stand.lastActionType === 'coal' && '炭交換'}
-                      {stand.lastActionType === 'adjust' && '調整'}
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">最終メンテナンス:</span>{' '}
+                      {stand.lastActionType === 'ash' && (
+                        <>
+                          <Trash2 size={14} className="neon-cyan inline" />
+                          <span>すす捨て</span>
+                        </>
+                      )}
+                      {stand.lastActionType === 'coal' && (
+                        <>
+                          <Flame size={14} className="neon-pink inline" />
+                          <span>炭交換</span>
+                        </>
+                      )}
+                      {stand.lastActionType === 'adjust' && (
+                        <>
+                          <Sliders size={14} className="neon-purple inline" />
+                          <span>調整</span>
+                        </>
+                      )}
+                      {' '}
+                      {formatTime(stand.lastActionAt)}
                     </div>
                   )}
                   <div>
-                    <span className="font-medium">処理時間:</span>{' '}
-                    {formatTime(stand.lastActionAt)}
-                  </div>
-                  <div>
-                    <span className="font-medium">経過:</span>{' '}
-                    {getElapsedMinutes(stand.lastActionAt) || '—'}
+                    <span className="font-medium">経過時間:</span>{' '}
+                    {(() => {
+                      const elapsed = stand.lastActionAt ? Math.floor((currentTime - stand.lastActionAt) / 60000) : null;
+                      const colorClass = elapsed === null ? '' : elapsed > 15 ? 'text-red-400 font-semibold' : elapsed > 10 ? 'text-yellow-400 font-semibold' : '';
+                      return <span className={colorClass}>{getElapsedMinutes(stand.lastActionAt, currentTime) || '—'}</span>;
+                    })()}
                   </div>
                 </div>
 
@@ -210,13 +236,13 @@ export default function StandListPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-slate-800 rounded-lg p-6 max-w-sm w-full border border-slate-700">
             <h2 className="text-xl font-semibold text-slate-50 mb-4">
-              新しいスタンドを追加
+              新しいセッションを追加
             </h2>
 
             <form onSubmit={handleCreateStand} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-3">
-                  スタンド番号 *
+                  シーシャ台番号
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
@@ -245,7 +271,7 @@ export default function StandListPage() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">
-                  フレーバー (オプション)
+                  フレーバー名
                 </label>
                 <div className="relative">
                   <input
