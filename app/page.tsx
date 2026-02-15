@@ -13,11 +13,18 @@ export default function StandListPage() {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ number: '', flavor: '' });
   const [flavors, setFlavors] = useState<string[]>([]);
+  const [showFlavorList, setShowFlavorList] = useState(false);
 
   useEffect(() => {
     loadStands();
     loadFlavors();
   }, []);
+
+  useEffect(() => {
+    if (!showForm) {
+      setShowFlavorList(false);
+    }
+  }, [showForm]);
 
   const loadStands = async () => {
     setLoading(true);
@@ -47,6 +54,7 @@ export default function StandListPage() {
     try {
       await createStand(parseInt(formData.number, 10), formData.flavor || undefined);
       setFormData({ number: '', flavor: '' });
+      setShowFlavorList(false);
       setShowForm(false);
       await loadStands();
     } catch (err) {
@@ -239,21 +247,35 @@ export default function StandListPage() {
                 <label className="block text-sm font-medium text-slate-300 mb-1">
                   フレーバー (オプション)
                 </label>
-                <input
-                  type="text"
-                  value={formData.flavor}
-                  onChange={(e) =>
-                    setFormData({ ...formData, flavor: e.target.value })
-                  }
-                  list="flavor-list"
-                  className="w-full px-3 py-2 border-2 rounded-lg bg-slate-900 text-slate-50 focus:outline-none neon-border-cyan"
-                  placeholder="新規入力または選択"
-                />
-                <datalist id="flavor-list">
-                  {flavors.map((flavor) => (
-                    <option key={flavor} value={flavor} />
-                  ))}
-                </datalist>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={formData.flavor}
+                    onChange={(e) =>
+                      setFormData({ ...formData, flavor: e.target.value })
+                    }
+                    onFocus={() => setShowFlavorList(true)}
+                    className="w-full px-3 py-2 border-2 rounded-lg bg-slate-900 text-slate-50 focus:outline-none neon-border-cyan"
+                    placeholder="新規入力または選択"
+                  />
+                  {showFlavorList && flavors.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-slate-900 border-2 neon-border-cyan rounded-lg z-10 max-h-40 overflow-y-auto">
+                      {flavors.slice(0, 10).map((flavor) => (
+                        <button
+                          key={flavor}
+                          type="button"
+                          onClick={() => {
+                            setFormData({ ...formData, flavor });
+                            setShowFlavorList(false);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm text-slate-50 hover:bg-slate-800 transition-colors"
+                        >
+                          {flavor}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex gap-2 pt-2">
@@ -269,6 +291,7 @@ export default function StandListPage() {
                   onClick={() => {
                     setShowForm(false);
                     setFormData({ number: '', flavor: '' });
+                    setShowFlavorList(false);
                   }}
                   className="flex-1 px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-purple hover:shadow-lg transition-all"
                 >
