@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, ChevronRight } from 'lucide-react';
+import { Plus, ChevronRight, Trash2, Flame, Settings } from 'lucide-react';
 import { Stand } from '@/lib/db';
 import { getActiveStands, createStand, recordAction, endSession } from '@/lib/domain';
 
@@ -84,9 +84,17 @@ export default function StandListPage() {
 
   return (
     <main className="flex-1 max-w-2xl mx-auto w-full p-4">
-      <div className="mb-6">
-        <h1 className="text-3xl font-light text-slate-50 mb-2">HeatManagementMemo</h1>
-        <p className="text-sm text-slate-400"></p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-light text-slate-50 mb-2">HeatManagementMemo</h1>
+          <p className="text-sm text-slate-400"></p>
+        </div>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="text-3xl font-light text-slate-50 hover:text-blue-400 transition-colors"
+        >
+          +
+        </button>
       </div>
 
       {loading ? (
@@ -111,7 +119,7 @@ export default function StandListPage() {
               <div key={stand.id} className="p-4 bg-slate-800 rounded-lg border border-slate-700 hover:border-blue-400 hover:shadow-sm transition-all">
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-2xl font-semibold text-slate-50">
-                    スタンド {stand.number}番台
+                    {stand.number}番台
                   </span>
                   {stand.flavor && (
                     <span className="text-2xl font-semibold text-slate-400">{stand.flavor}</span>
@@ -121,7 +129,7 @@ export default function StandListPage() {
                 <div className="flex gap-6 text-sm text-slate-400 mb-3">
                   {stand.lastActionType && (
                     <div>
-                      <span className="font-medium">最終メンテナンス:</span>{' '}
+                      <span className="font-medium">最終:</span>{' '}
                       {stand.lastActionType === 'ash' && 'すす捨て'}
                       {stand.lastActionType === 'coal' && '炭交換'}
                       {stand.lastActionType === 'adjust' && '調整'}
@@ -140,20 +148,23 @@ export default function StandListPage() {
                 <div className="flex gap-2 mb-3">
                   <button
                     onClick={(e) => handleQuickAction(stand.id, 'ash', e)}
-                    className="flex-1 px-3 py-2 text-xs bg-slate-700 text-slate-50 rounded hover:bg-slate-600 font-medium"
+                    className="flex-1 px-3 py-2 text-xs bg-slate-700 text-slate-50 rounded hover:bg-slate-600 font-medium flex flex-col items-center gap-1"
                   >
+                    <Trash2 size={24} />
                     すす捨て
                   </button>
                   <button
                     onClick={(e) => handleQuickAction(stand.id, 'coal', e)}
-                    className="flex-1 px-3 py-2 text-xs bg-slate-700 text-slate-50 rounded hover:bg-slate-600 font-medium"
+                    className="flex-1 px-3 py-2 text-xs bg-slate-700 text-slate-50 rounded hover:bg-slate-600 font-medium flex flex-col items-center gap-1"
                   >
+                    <Flame size={24} />
                     炭交換
                   </button>
                   <button
                     onClick={(e) => handleQuickAction(stand.id, 'adjust', e)}
-                    className="flex-1 px-3 py-2 text-xs bg-slate-700 text-slate-50 rounded hover:bg-slate-600 font-medium"
+                    className="flex-1 px-3 py-2 text-xs bg-slate-700 text-slate-50 rounded hover:bg-slate-600 font-medium flex flex-col items-center gap-1"
                   >
+                    <Settings size={24} />
                     調整
                   </button>
                 </div>
@@ -179,16 +190,6 @@ export default function StandListPage() {
                 )}
               </div>
             ))}
-          </div>
-
-          <div className="sticky bottom-4 flex justify-center">
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              <Plus size={18} />
-              新規追加
-            </button>
           </div>
         </>
       )}
