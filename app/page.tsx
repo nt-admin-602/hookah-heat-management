@@ -259,7 +259,7 @@ export default function StandListPage() {
                     placeholder="新規入力または選択"
                   />
                   {showFlavorList && flavors.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-slate-900 border-2 neon-border-cyan rounded-lg z-10 max-h-40 overflow-y-auto">
+                    <div className="absolute bottom-full left-0 right-0 mb-1 bg-slate-900 border-2 neon-border-cyan rounded-lg z-10 max-h-32 overflow-y-auto">
                       {flavors.slice(0, 10).map((flavor) => (
                         <button
                           key={flavor}
