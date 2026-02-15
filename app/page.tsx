@@ -133,7 +133,7 @@ export default function StandListPage() {
                     {stand.number}番台
                   </span>
                   {stand.flavor && (
-                    <span className="text-2xl font-semibold neon-pink">{stand.flavor}</span>
+                    <span className="text-2xl font-semibold neon-yellow">{stand.flavor}</span>
                   )}
                 </div>
 
