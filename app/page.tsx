@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, ChevronRight, Trash2, Flame, Sliders } from 'lucide-react';
+import { ChevronRight, Trash2, Flame, Sliders } from 'lucide-react';
 import { Stand } from '@/lib/db';
 import { getActiveStands, createStand, recordAction, endSession, getAllFlavors } from '@/lib/domain';
 
