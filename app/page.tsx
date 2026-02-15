@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, ChevronRight, Trash2, Flame, Settings } from 'lucide-react';
+import { Plus, ChevronRight, Trash2, Flame, Chopsticks } from 'lucide-react';
 import { Stand } from '@/lib/db';
 import { getActiveStands, createStand, recordAction, endSession, getAllFlavors } from '@/lib/domain';
 
@@ -175,7 +175,7 @@ export default function StandListPage() {
                     onClick={(e) => handleQuickAction(stand.id, 'adjust', e)}
                     className="flex-1 px-3 py-2 text-xs bg-slate-900 rounded hover:shadow-lg font-medium flex flex-col items-center gap-1 neon-border-purple transition-all"
                   >
-                    <Settings size={24} className="neon-purple" />
+                    <Chopsticks size={24} className="neon-purple" />
                     <span className="neon-purple">調整</span>
                   </button>
                 </div>
