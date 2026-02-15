@@ -97,14 +97,14 @@ export default function StandListPage() {
     <main className="flex-1 max-w-2xl mx-auto w-full p-4">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-light text-slate-50 mb-2">HeatManagementMemo</h1>
+          <h1 className="text-3xl font-light text-slate-50 mb-2">HeatMemo</h1>
           <p className="text-sm text-slate-400"></p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="text-3xl font-light text-slate-50 hover:text-blue-400 transition-colors"
+          className="px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-yellow hover:shadow-lg transition-all"
         >
-          +
+          <span className="neon-yellow">セッション追加</span>
         </button>
       </div>
 
@@ -133,7 +133,7 @@ export default function StandListPage() {
                     {stand.number}番台
                   </span>
                   {stand.flavor && (
-                    <span className="text-2xl font-semibold neon-yellow">{stand.flavor}</span>
+                    <span className="text-2xl font-semibold neon-green">{stand.flavor}</span>
                   )}
                 </div>
 

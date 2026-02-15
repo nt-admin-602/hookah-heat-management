@@ -65,3 +65,14 @@ body {
   border-width: 2px;
   box-shadow: 0 0 10px rgba(160, 32, 240, 0.4), inset 0 0 10px rgba(160, 32, 240, 0.1);
 }
+
+.neon-border-yellow {
+  border-color: #ffff00;
+  border-width: 2px;
+  box-shadow: 0 0 10px rgba(255, 255, 0, 0.4), inset 0 0 10px rgba(255, 255, 0, 0.1);
+}
+
+.neon-green {
+  color: #00ff00;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.5);
+}
