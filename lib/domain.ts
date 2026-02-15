@@ -131,3 +131,14 @@ export async function updateStandNote(standId: string, note: string): Promise<vo
 export async function updateStandFlavor(standId: string, flavor: string): Promise<void> {
   await db.stands.update(standId, { flavor });
 }
+
+/**
+ * Get all unique flavors from stands
+ */
+export async function getAllFlavors(): Promise<string[]> {
+  const stands = await db.stands.toArray();
+  const flavors = stands
+    .map((stand) => stand.flavor)
+    .filter((flavor): flavor is string => Boolean(flavor));
+  return Array.from(new Set(flavors)).sort();
+}

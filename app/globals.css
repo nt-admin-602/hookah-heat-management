@@ -26,3 +26,37 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Neon glow effects */
+.neon-cyan {
+  color: #00f0ff;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.8), 0 0 20px rgba(0, 240, 255, 0.5);
+}
+
+.neon-pink {
+  color: #ff0080;
+  text-shadow: 0 0 10px rgba(255, 0, 128, 0.8), 0 0 20px rgba(255, 0, 128, 0.5);
+}
+
+.neon-purple {
+  color: #a020f0;
+  text-shadow: 0 0 10px rgba(160, 32, 240, 0.8), 0 0 20px rgba(160, 32, 240, 0.5);
+}
+
+.neon-border-cyan {
+  border-color: #00f0ff;
+  border-width: 2px;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4), inset 0 0 10px rgba(0, 240, 255, 0.1);
+}
+
+.neon-border-pink {
+  border-color: #ff0080;
+  border-width: 2px;
+  box-shadow: 0 0 10px rgba(255, 0, 128, 0.4), inset 0 0 10px rgba(255, 0, 128, 0.1);
+}
+
+.neon-border-purple {
+  border-color: #a020f0;
+  border-width: 2px;
+  box-shadow: 0 0 10px rgba(160, 32, 240, 0.4), inset 0 0 10px rgba(160, 32, 240, 0.1);
+}

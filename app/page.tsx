@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, ChevronRight, Trash2, Flame, Settings } from 'lucide-react';
 import { Stand } from '@/lib/db';
-import { getActiveStands, createStand, recordAction, endSession } from '@/lib/domain';
+import { getActiveStands, createStand, recordAction, endSession, getAllFlavors } from '@/lib/domain';
 
 export default function StandListPage() {
   const router = useRouter();
@@ -12,9 +12,11 @@ export default function StandListPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ number: '', flavor: '' });
+  const [flavors, setFlavors] = useState<string[]>([]);
 
   useEffect(() => {
     loadStands();
+    loadFlavors();
   }, []);
 
   const loadStands = async () => {
@@ -26,6 +28,15 @@ export default function StandListPage() {
       console.error('Failed to load stands:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadFlavors = async () => {
+    try {
+      const data = await getAllFlavors();
+      setFlavors(data);
+    } catch (err) {
+      console.error('Failed to load flavors:', err);
     }
   };
 
@@ -118,11 +129,11 @@ export default function StandListPage() {
             {stands.map((stand) => (
               <div key={stand.id} className="p-4 bg-slate-800 rounded-lg border border-slate-700 hover:border-blue-400 hover:shadow-sm transition-all">
                 <div className="flex items-center gap-3 mb-3">
-                  <span className="text-2xl font-semibold text-slate-50">
+                  <span className="text-2xl font-semibold neon-cyan">
                     {stand.number}番台
                   </span>
                   {stand.flavor && (
-                    <span className="text-2xl font-semibold text-slate-400">{stand.flavor}</span>
+                    <span className="text-2xl font-semibold neon-pink">{stand.flavor}</span>
                   )}
                 </div>
 
@@ -148,24 +159,24 @@ export default function StandListPage() {
                 <div className="flex gap-2 mb-3">
                   <button
                     onClick={(e) => handleQuickAction(stand.id, 'ash', e)}
-                    className="flex-1 px-3 py-2 text-xs bg-slate-700 text-slate-50 rounded hover:bg-slate-600 font-medium flex flex-col items-center gap-1"
+                    className="flex-1 px-3 py-2 text-xs bg-slate-900 rounded hover:shadow-lg font-medium flex flex-col items-center gap-1 neon-border-cyan transition-all"
                   >
-                    <Trash2 size={24} />
-                    すす捨て
+                    <Trash2 size={24} className="neon-cyan" />
+                    <span className="neon-cyan">すす捨て</span>
                   </button>
                   <button
                     onClick={(e) => handleQuickAction(stand.id, 'coal', e)}
-                    className="flex-1 px-3 py-2 text-xs bg-slate-700 text-slate-50 rounded hover:bg-slate-600 font-medium flex flex-col items-center gap-1"
+                    className="flex-1 px-3 py-2 text-xs bg-slate-900 rounded hover:shadow-lg font-medium flex flex-col items-center gap-1 neon-border-pink transition-all"
                   >
-                    <Flame size={24} />
-                    炭交換
+                    <Flame size={24} className="neon-pink" />
+                    <span className="neon-pink">炭交換</span>
                   </button>
                   <button
                     onClick={(e) => handleQuickAction(stand.id, 'adjust', e)}
-                    className="flex-1 px-3 py-2 text-xs bg-slate-700 text-slate-50 rounded hover:bg-slate-600 font-medium flex flex-col items-center gap-1"
+                    className="flex-1 px-3 py-2 text-xs bg-slate-900 rounded hover:shadow-lg font-medium flex flex-col items-center gap-1 neon-border-purple transition-all"
                   >
-                    <Settings size={24} />
-                    調整
+                    <Settings size={24} className="neon-purple" />
+                    <span className="neon-purple">調整</span>
                   </button>
                 </div>
 
@@ -203,43 +214,61 @@ export default function StandListPage() {
 
             <form onSubmit={handleCreateStand} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-3">
                   スタンド番号 *
                 </label>
-                <input
-                  type="number"
-                  required
-                  min="1"
-                  value={formData.number}
-                  onChange={(e) =>
-                    setFormData({ ...formData, number: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-900 text-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="1"
-                />
+                <div className="grid grid-cols-3 gap-2">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, number: String(num) })}
+                      className={`py-3 rounded-lg font-bold text-lg transition-all ${
+                        formData.number === String(num)
+                          ? 'neon-border-pink'
+                          : 'neon-border-cyan'
+                      }`}
+                    >
+                      <span className={formData.number === String(num) ? 'neon-pink' : 'neon-cyan'}>
+                        {num}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                {formData.number && (
+                  <p className="text-sm text-slate-400 mt-2">
+                    選択: <span className="neon-cyan font-semibold">{formData.number}番台</span>
+                  </p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">
                   フレーバー (オプション)
                 </label>
-                <input
-                  type="text"
+                <select
                   value={formData.flavor}
                   onChange={(e) =>
                     setFormData({ ...formData, flavor: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-900 text-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="例: アップルミント"
-                />
+                  className="w-full px-3 py-2 border-2 rounded-lg bg-slate-900 text-slate-50 focus:outline-none neon-border-cyan"
+                >
+                  <option value="">-- 選択 --</option>
+                  {flavors.map((flavor) => (
+                    <option key={flavor} value={flavor}>
+                      {flavor}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex gap-2 pt-2">
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  disabled={!formData.number}
+                  className="flex-1 px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-cyan disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
                 >
-                  作成
+                  <span className="neon-cyan">作成</span>
                 </button>
                 <button
                   type="button"
@@ -247,9 +276,9 @@ export default function StandListPage() {
                     setShowForm(false);
                     setFormData({ number: '', flavor: '' });
                   }}
-                  className="flex-1 px-4 py-2 bg-slate-700 text-slate-50 rounded-lg hover:bg-slate-600"
+                  className="flex-1 px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-purple hover:shadow-lg transition-all"
                 >
-                  キャンセル
+                  <span className="neon-purple">キャンセル</span>
                 </button>
               </div>
             </form>
