@@ -143,23 +143,16 @@ export default function StandDetailPage() {
       {/* Header */}
       <div className="mb-6">
         <Link href="/">
-          <button className="inline-flex items-center gap-2 px-3 py-2 text-slate-300 hover:text-slate-50 mb-4">
+          <button className="inline-flex items-center gap-2 px-3 py-2 text-slate-300 hover:neon-cyan transition-colors mb-4">
             <ArrowLeft size={18} />
             戻る
           </button>
         </Link>
 
         <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-semibold text-slate-50">
-                スタンド #{stand.number}
-              </h1>
-              <p className="text-sm text-slate-400 mt-1">
-                Status: {stand.status === 'active' ? 'アクティブ' : '終了'}
-              </p>
-            </div>
-          </div>
+          <h1 className="text-xl font-semibold text-slate-50 mb-4">
+            {stand.number}番台
+          </h1>
 
           {/* Flavor */}
           <div className="mb-4">
@@ -167,12 +160,14 @@ export default function StandDetailPage() {
               <label className="text-sm font-medium text-slate-300">
                 フレーバー
               </label>
-              <button
-                onClick={() => handleEditStart('flavor')}
-                className="text-slate-400 hover:text-slate-200"
-              >
-                <Edit2 size={16} />
-              </button>
+              {!editingField && (
+                <button
+                  onClick={() => handleEditStart('flavor')}
+                  className="text-slate-400 hover:neon-cyan transition-colors"
+                >
+                  <Edit2 size={16} />
+                </button>
+              )}
             </div>
             {editingField === 'flavor' ? (
               <div className="flex gap-2">
@@ -181,24 +176,24 @@ export default function StandDetailPage() {
                   type="text"
                   value={editValue}
                   onChange={(e) => setEditValue(e.target.value)}
-                  className="flex-1 px-2 py-1 border border-slate-700 rounded text-sm bg-slate-900 text-slate-50"
+                  className="flex-1 px-3 py-2 border-2 rounded-lg bg-slate-900 text-slate-50 focus:outline-none neon-border-cyan"
                 />
                 <button
                   onClick={handleSaveEdit}
-                  className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                  className="px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-cyan hover:shadow-lg transition-all"
                 >
-                  保存
+                  <span className="neon-cyan">保存</span>
                 </button>
                 <button
                   onClick={() => setEditingField(null)}
-                  className="px-3 py-1 bg-slate-700 text-slate-50 rounded text-sm hover:bg-slate-600"
+                  className="px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-purple hover:shadow-lg transition-all"
                 >
-                  キャンセル
+                  <span className="neon-purple">キャンセル</span>
                 </button>
               </div>
             ) : (
-              <p className="text-slate-50 font-medium">
-                {stand.flavor || '未設定'}
+              <p className="text-slate-50 text-lg">
+                {stand.flavor || <span className="text-slate-400">未設定</span>}
               </p>
             )}
           </div>
@@ -207,12 +202,14 @@ export default function StandDetailPage() {
           <div className="mb-4">
             <div className="flex items-center justify-between mb-1">
               <label className="text-sm font-medium text-slate-300">メモ</label>
-              <button
-                onClick={() => handleEditStart('note')}
-                className="text-slate-400 hover:text-slate-200"
-              >
-                <Edit2 size={16} />
-              </button>
+              {!editingField && (
+                <button
+                  onClick={() => handleEditStart('note')}
+                  className="text-slate-400 hover:neon-cyan transition-colors"
+                >
+                  <Edit2 size={16} />
+                </button>
+              )}
             </div>
             {editingField === 'note' ? (
               <div className="flex gap-2">
@@ -220,21 +217,21 @@ export default function StandDetailPage() {
                   autoFocus
                   value={editValue}
                   onChange={(e) => setEditValue(e.target.value)}
-                  className="flex-1 px-2 py-1 border border-slate-700 rounded text-sm bg-slate-900 text-slate-50"
+                  className="flex-1 px-3 py-2 border-2 rounded-lg bg-slate-900 text-slate-50 focus:outline-none neon-border-cyan"
                   rows={3}
                 />
                 <div className="flex flex-col gap-2">
                   <button
                     onClick={handleSaveEdit}
-                    className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                    className="px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-cyan hover:shadow-lg transition-all"
                   >
-                    保存
+                    <span className="neon-cyan">保存</span>
                   </button>
                   <button
                     onClick={() => setEditingField(null)}
-                    className="px-3 py-1 bg-slate-700 text-slate-50 rounded text-sm hover:bg-slate-600"
+                    className="px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-purple hover:shadow-lg transition-all"
                   >
-                    キャンセル
+                    <span className="neon-purple">キャンセル</span>
                   </button>
                 </div>
               </div>
@@ -302,21 +299,24 @@ export default function StandDetailPage() {
           <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => handleQuickAction('ash')}
-              className="px-4 py-3 bg-slate-700 text-slate-50 rounded-lg hover:bg-slate-600 font-medium text-sm"
+              className="px-3 py-2 text-xs bg-slate-900 rounded hover:shadow-lg font-medium flex flex-col items-center gap-1 neon-border-cyan transition-all"
             >
-              すす捨て
+              <Trash2 size={24} className="neon-cyan" />
+              <span className="neon-cyan">すす捨て</span>
             </button>
             <button
               onClick={() => handleQuickAction('coal')}
-              className="px-4 py-3 bg-slate-700 text-slate-50 rounded-lg hover:bg-slate-600 font-medium text-sm"
+              className="px-3 py-2 text-xs bg-slate-900 rounded hover:shadow-lg font-medium flex flex-col items-center gap-1 neon-border-pink transition-all"
             >
-              炭交換
+              <Flame size={24} className="neon-pink" />
+              <span className="neon-pink">炭交換</span>
             </button>
             <button
               onClick={() => handleQuickAction('adjust')}
-              className="px-4 py-3 bg-slate-700 text-slate-50 rounded-lg hover:bg-slate-600 font-medium text-sm"
+              className="px-3 py-2 text-xs bg-slate-900 rounded hover:shadow-lg font-medium flex flex-col items-center gap-1 neon-border-purple transition-all"
             >
-              調整
+              <Sliders size={24} className="neon-purple" />
+              <span className="neon-purple">調整</span>
             </button>
           </div>
         </div>
@@ -335,9 +335,38 @@ export default function StandDetailPage() {
             {events.map((event) => (
               <div key={event.id} className="p-3 bg-slate-800 rounded border border-slate-700">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-medium text-slate-50">
-                    {getEventLabel(event.type)}
-                  </span>
+                  <div className="flex items-center gap-1 font-medium text-slate-50">
+                    {event.type === 'create' && (
+                      <span>{getEventLabel(event.type)}</span>
+                    )}
+                    {event.type === 'ash' && (
+                      <>
+                        <Trash2 size={14} className="neon-cyan inline" />
+                        <span>{getEventLabel(event.type)}</span>
+                      </>
+                    )}
+                    {event.type === 'coal' && (
+                      <>
+                        <Flame size={14} className="neon-pink inline" />
+                        <span>{getEventLabel(event.type)}</span>
+                      </>
+                    )}
+                    {event.type === 'adjust' && (
+                      <>
+                        <Sliders size={14} className="neon-purple inline" />
+                        <span>{getEventLabel(event.type)}</span>
+                      </>
+                    )}
+                    {event.type === 'note' && (
+                      <span>{getEventLabel(event.type)}</span>
+                    )}
+                    {event.type === 'end' && (
+                      <>
+                        <Power size={14} className="text-red-400 inline" />
+                        <span>{getEventLabel(event.type)}</span>
+                      </>
+                    )}
+                  </div>
                   <span className="text-xs text-slate-400">
                     {formatTime(event.at)}
                   </span>
