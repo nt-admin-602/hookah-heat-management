@@ -246,20 +246,21 @@ export default function StandListPage() {
                 <label className="block text-sm font-medium text-slate-300 mb-1">
                   フレーバー (オプション)
                 </label>
-                <select
+                <input
+                  type="text"
                   value={formData.flavor}
                   onChange={(e) =>
                     setFormData({ ...formData, flavor: e.target.value })
                   }
+                  list="flavor-list"
                   className="w-full px-3 py-2 border-2 rounded-lg bg-slate-900 text-slate-50 focus:outline-none neon-border-cyan"
-                >
-                  <option value="">-- 選択 --</option>
+                  placeholder="新規入力または選択"
+                />
+                <datalist id="flavor-list">
                   {flavors.map((flavor) => (
-                    <option key={flavor} value={flavor}>
-                      {flavor}
-                    </option>
+                    <option key={flavor} value={flavor} />
                   ))}
-                </select>
+                </datalist>
               </div>
 
               <div className="flex gap-2 pt-2">
