@@ -264,7 +264,8 @@ export default function StandListPage() {
                         <button
                           key={flavor}
                           type="button"
-                          onClick={() => {
+                          onMouseDown={(e) => {
+                            e.preventDefault();
                             setFormData({ ...formData, flavor });
                             setShowFlavorList(false);
                           }}
@@ -284,7 +285,7 @@ export default function StandListPage() {
                   disabled={!formData.number}
                   className="flex-1 px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-cyan disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
                 >
-                  <span className="neon-cyan">作成</span>
+                  <span className="neon-cyan">追加</span>
                 </button>
                 <button
                   type="button"
