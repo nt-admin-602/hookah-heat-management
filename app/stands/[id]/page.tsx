@@ -85,6 +85,7 @@ export default function StandDetailPage() {
 
   const getEventLabel = (type: Event['type']) => {
     const labels: Record<Event['type'], string> = {
+      create: '新規追加',
       ash: 'すす捨て',
       coal: '炭交換',
       adjust: '調整',
@@ -233,6 +234,7 @@ export default function StandDetailPage() {
               <span className="font-medium">最終操作:</span>{' '}
               {stand.lastActionType ? (
                 <>
+                  {stand.lastActionType === 'create' && '新規追加'}
                   {stand.lastActionType === 'ash' && 'すす捨て'}
                   {stand.lastActionType === 'coal' && '炭交換'}
                   {stand.lastActionType === 'adjust' && '調整'}

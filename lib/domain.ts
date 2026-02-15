@@ -79,14 +79,26 @@ export function sortStands(stands: Stand[]): Stand[] {
  * Create a new stand
  */
 export async function createStand(number: number, flavor?: string): Promise<Stand> {
+  const now = Date.now();
   const stand: Stand = {
     id: generateId(),
     number,
     flavor,
     status: 'active',
+    lastActionType: 'create',
+    lastActionAt: now,
+  };
+
+  // Create initial event
+  const event: Event = {
+    id: generateId(),
+    standId: stand.id,
+    type: 'create',
+    at: now,
   };
 
   await db.stands.add(stand);
+  await db.events.add(event);
   return stand;
 }
 

@@ -151,6 +151,11 @@ export default function StandListPage() {
                   {stand.lastActionType && (
                     <div className="flex items-center gap-1">
                       <span className="font-medium">最終メンテナンス:</span>{' '}
+                      {stand.lastActionType === 'create' && (
+                        <>
+                          <span>新規追加</span>
+                        </>
+                      )}
                       {stand.lastActionType === 'ash' && (
                         <>
                           <Trash2 size={14} className="neon-cyan inline" />
