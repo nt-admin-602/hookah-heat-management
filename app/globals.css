@@ -48,6 +48,11 @@ body {
   text-shadow: 0 0 10px rgba(255, 255, 0, 0.8), 0 0 20px rgba(255, 255, 0, 0.5);
 }
 
+.neon-red {
+  color: #ff0000;
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.8), 0 0 20px rgba(255, 0, 0, 0.5);
+}
+
 .neon-border-cyan {
   border-color: #00f0ff;
   border-width: 2px;

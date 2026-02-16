@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronRight, Trash2, Flame, Sliders } from 'lucide-react';
 import { Stand } from '@/lib/db';
-import { getActiveStands, createStand, recordAction, endSession, getAllFlavors } from '@/lib/domain';
+import { getActiveStands, createStand, recordAction, endSession, getAllFlavors, getSessionStartTime } from '@/lib/domain';
 
 export default function StandListPage() {
   const router = useRouter();
@@ -15,6 +15,7 @@ export default function StandListPage() {
   const [flavors, setFlavors] = useState<string[]>([]);
   const [showFlavorList, setShowFlavorList] = useState(false);
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [sessionStartTimes, setSessionStartTimes] = useState<Record<string, number>>({});
 
   useEffect(() => {
     loadStands();
@@ -40,6 +41,18 @@ export default function StandListPage() {
     try {
       const data = await getActiveStands();
       setStands(data);
+
+      // Load session start times for all stands
+      const startTimes: Record<string, number> = {};
+      await Promise.all(
+        data.map(async (stand) => {
+          const startTime = await getSessionStartTime(stand.id);
+          if (startTime) {
+            startTimes[stand.id] = startTime;
+          }
+        })
+      );
+      setSessionStartTimes(startTimes);
     } catch (err) {
       console.error('Failed to load stands:', err);
     } finally {
@@ -93,28 +106,11 @@ export default function StandListPage() {
     }
   };
 
-  const formatTime = (timestamp?: number) => {
-    if (!timestamp) return '記録なし';
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const getElapsedMinutes = (timestamp?: number, now: number = Date.now()) => {
-    if (!timestamp) return null;
-    const elapsed = Math.floor((now - timestamp) / 60000);
-    if (elapsed < 1) return '1分';
-    if (elapsed < 60) return `${elapsed}分`;
-    const hours = Math.floor(elapsed / 60);
-    if (hours < 24) return `${hours}時間`;
-    const days = Math.floor(hours / 24);
-    return `${days}日`;
-  };
-
   return (
     <main className="flex-1 max-w-2xl mx-auto w-full p-4">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-light text-slate-50 mb-2">HeatMemo</h1>
+          <h1 className="text-3xl font-light neon-red font-[family-name:var(--font-stick)]">オキビモリ</h1>
           <p className="text-sm text-slate-400"></p>
         </div>
         <button
@@ -148,9 +144,9 @@ export default function StandListPage() {
                 </div>
 
                 <div className="flex gap-6 text-sm text-slate-400 mb-3">
-                  {stand.lastActionType && (
+                  {stand.lastActionType && stand.lastActionAt && (
                     <div className="flex items-center gap-1">
-                      <span className="font-medium">最終メンテナンス:</span>{' '}
+                      <span className="font-medium">最終メンテ:</span>{' '}
                       {stand.lastActionType === 'create' && (
                         <>
                           <span>新規追加</span>
@@ -175,15 +171,20 @@ export default function StandListPage() {
                         </>
                       )}
                       {' '}
-                      {formatTime(stand.lastActionAt)}
+                      {(() => {
+                        const elapsed = Math.floor((currentTime - stand.lastActionAt) / 60000);
+                        const colorClass = elapsed > 15 ? 'text-red-400 font-semibold' : elapsed > 10 ? 'text-yellow-400 font-semibold' : '';
+                        return <span className={colorClass}>{elapsed < 1 ? '1分前' : `${elapsed}分前`}</span>;
+                      })()}
                     </div>
                   )}
                   <div>
                     <span className="font-medium">経過時間:</span>{' '}
                     {(() => {
-                      const elapsed = stand.lastActionAt ? Math.floor((currentTime - stand.lastActionAt) / 60000) : null;
-                      const colorClass = elapsed === null ? '' : elapsed > 15 ? 'text-red-400 font-semibold' : elapsed > 10 ? 'text-yellow-400 font-semibold' : '';
-                      return <span className={colorClass}>{getElapsedMinutes(stand.lastActionAt, currentTime) || '—'}</span>;
+                      const startTime = sessionStartTimes[stand.id];
+                      if (!startTime) return '—';
+                      const elapsed = Math.floor((currentTime - startTime) / 60000);
+                      return <span>{elapsed < 1 ? '1分' : `${elapsed}分`}</span>;
                     })()}
                   </div>
                 </div>

@@ -154,3 +154,16 @@ export async function getAllFlavors(): Promise<string[]> {
     .filter((flavor): flavor is string => Boolean(flavor));
   return Array.from(new Set(flavors)).sort();
 }
+
+/**
+ * Get the session start time (create event timestamp) for a stand
+ */
+export async function getSessionStartTime(standId: string): Promise<number | null> {
+  const createEvent = await db.events
+    .where('standId')
+    .equals(standId)
+    .and((event) => event.type === 'create')
+    .first();
+
+  return createEvent?.at ?? null;
+}
