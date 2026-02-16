@@ -12,6 +12,7 @@ import {
   endSession,
   updateStandNote,
   updateStandFlavor,
+  getSessionStartTime,
 } from '@/lib/domain';
 
 export default function StandDetailPage() {
@@ -25,6 +26,8 @@ export default function StandDetailPage() {
   const [editingField, setEditingField] = useState<'flavor' | 'note' | null>(null);
   const [editValue, setEditValue] = useState('');
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
+  const [showConfirmEnd, setShowConfirmEnd] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -43,8 +46,10 @@ export default function StandDetailPage() {
     try {
       const standData = await getStand(standId);
       const eventsData = await getStandEvents(standId);
+      const startTime = await getSessionStartTime(standId);
       setStand(standData || null);
       setEvents(eventsData);
+      setSessionStartTime(startTime);
     } catch (err) {
       console.error('Failed to load stand:', err);
     } finally {
@@ -62,8 +67,10 @@ export default function StandDetailPage() {
   };
 
   const handleEndSession = async () => {
-    if (!confirm('このスタンドのセッションを終了しますか？')) return;
+    setShowConfirmEnd(true);
+  };
 
+  const confirmEndSession = async () => {
     try {
       await endSession(standId);
       router.push('/');
@@ -91,17 +98,6 @@ export default function StandDetailPage() {
     if (!timestamp) return '記録なし';
     const date = new Date(timestamp);
     return date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const getElapsedMinutes = (timestamp?: number, now: number = Date.now()) => {
-    if (!timestamp) return null;
-    const elapsed = Math.floor((now - timestamp) / 60000);
-    if (elapsed < 1) return '1分';
-    if (elapsed < 60) return `${elapsed}分`;
-    const hours = Math.floor(elapsed / 60);
-    if (hours < 24) return `${hours}時間`;
-    const days = Math.floor(hours / 24);
-    return `${days}日`;
   };
 
   const getEventLabel = (type: Event['type']) => {
@@ -249,9 +245,9 @@ export default function StandDetailPage() {
           {/* Last Action */}
           <div className="text-sm text-slate-400 border-t border-slate-700 pt-4">
             <div className="flex gap-6 mb-2">
-              {stand.lastActionType && (
+              {stand.lastActionType && stand.lastActionAt && (
                 <div className="flex items-center gap-1">
-                  <span className="font-medium">最終メンテナンス:</span>{' '}
+                  <span className="font-medium">最終メンテ:</span>{' '}
                   {stand.lastActionType === 'create' && (
                     <>
                       <span>新規追加</span>
@@ -276,15 +272,19 @@ export default function StandDetailPage() {
                     </>
                   )}
                   {' '}
-                  {formatTime(stand.lastActionAt)}
+                  {(() => {
+                    const elapsed = Math.floor((currentTime - stand.lastActionAt) / 60000);
+                    const colorClass = elapsed > 15 ? 'text-red-400 font-semibold' : elapsed > 10 ? 'text-yellow-400 font-semibold' : '';
+                    return <span className={colorClass}>{elapsed < 1 ? '1分前' : `${elapsed}分前`}</span>;
+                  })()}
                 </div>
               )}
               <div>
                 <span className="font-medium">経過時間:</span>{' '}
                 {(() => {
-                  const elapsed = stand.lastActionAt ? Math.floor((currentTime - stand.lastActionAt) / 60000) : null;
-                  const colorClass = elapsed === null ? '' : elapsed > 15 ? 'text-red-400 font-semibold' : elapsed > 10 ? 'text-yellow-400 font-semibold' : '';
-                  return <span className={colorClass}>{getElapsedMinutes(stand.lastActionAt, currentTime) || '—'}</span>;
+                  if (!sessionStartTime) return '—';
+                  const elapsed = Math.floor((currentTime - sessionStartTime) / 60000);
+                  return <span>{elapsed < 1 ? '1分' : `${elapsed}分`}</span>;
                 })()}
               </div>
             </div>
@@ -295,7 +295,6 @@ export default function StandDetailPage() {
       {/* Quick Actions */}
       {stand.status === 'active' && (
         <div className="mb-6">
-          <h2 className="text-sm font-medium text-slate-300 mb-3">クイック操作</h2>
           <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => handleQuickAction('ash')}
@@ -369,6 +368,12 @@ export default function StandDetailPage() {
                   </div>
                   <span className="text-xs text-slate-400">
                     {formatTime(event.at)}
+                    {' '}
+                    {(() => {
+                      if (!event.at) return '';
+                      const elapsed = Math.floor((currentTime - event.at) / 60000);
+                      return `(${elapsed < 1 ? '1分前' : `${elapsed}分前`})`;
+                    })()}
                   </span>
                 </div>
                 {event.memo && (
@@ -390,6 +395,34 @@ export default function StandDetailPage() {
             <Power size={18} />
             セッション終了
           </button>
+        </div>
+      )}
+
+      {/* End Session Confirmation Modal */}
+      {showConfirmEnd && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-800 rounded-lg p-6 max-w-sm w-full border-2 border-red-800">
+            <h2 className="text-xl font-semibold text-slate-50 mb-4">
+              セッション終了の確認
+            </h2>
+            <p className="text-slate-300 mb-6">
+              {stand?.number}番台{stand?.flavor ? ` ${stand.flavor}` : ''}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={confirmEndSession}
+                className="flex-1 px-4 py-2 bg-red-900/30 text-red-400 rounded-lg hover:bg-red-900/50 font-medium border border-red-800 transition-all"
+              >
+                終了する
+              </button>
+              <button
+                onClick={() => setShowConfirmEnd(false)}
+                className="flex-1 px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-cyan hover:shadow-lg transition-all"
+              >
+                <span className="neon-cyan">キャンセル</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </main>

@@ -16,6 +16,7 @@ export default function StandListPage() {
   const [showFlavorList, setShowFlavorList] = useState(false);
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [sessionStartTimes, setSessionStartTimes] = useState<Record<string, number>>({});
+  const [confirmEndSession, setConfirmEndSession] = useState<string | null>(null);
 
   useEffect(() => {
     loadStands();
@@ -96,11 +97,16 @@ export default function StandListPage() {
 
   const handleEndSession = async (standId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('このスタンドのセッションを終了しますか？')) return;
+    setConfirmEndSession(standId);
+  };
+
+  const confirmEndSessionAction = async () => {
+    if (!confirmEndSession) return;
 
     try {
-      await endSession(standId);
+      await endSession(confirmEndSession);
       await loadStands();
+      setConfirmEndSession(null);
     } catch (err) {
       console.error('End session failed:', err);
     }
@@ -127,7 +133,7 @@ export default function StandListPage() {
         </div>
       ) : stands.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 gap-4">
-          <p className="text-slate-400">セッション追加で、新しいセッションを追加しましょう！</p>
+          <p className="text-slate-400">まず、セッションを追加してみてください♪</p>
         </div>
       ) : (
         <>
@@ -332,6 +338,37 @@ export default function StandListPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* End Session Confirmation Modal */}
+      {confirmEndSession && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-800 rounded-lg p-6 max-w-sm w-full border-2 border-red-800">
+            <h2 className="text-xl font-semibold text-slate-50 mb-4">
+              セッション終了の確認
+            </h2>
+            <p className="text-slate-300 mb-6">
+              {(() => {
+                const stand = stands.find(s => s.id === confirmEndSession);
+                return `${stand?.number}番台${stand?.flavor ? ` ${stand.flavor}` : ''}`;
+              })()}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={confirmEndSessionAction}
+                className="flex-1 px-4 py-2 bg-red-900/30 text-red-400 rounded-lg hover:bg-red-900/50 font-medium border border-red-800 transition-all"
+              >
+                終了する
+              </button>
+              <button
+                onClick={() => setConfirmEndSession(null)}
+                className="flex-1 px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-cyan hover:shadow-lg transition-all"
+              >
+                <span className="neon-cyan">キャンセル</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

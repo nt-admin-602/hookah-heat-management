@@ -2,9 +2,9 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Hookah Heat Management',
-    short_name: 'HeatMemo',
-    description: 'Simple stand maintenance tracker for hookah shops',
+    name: '熾火守',
+    short_name: '熾火守',
+    description: 'シーシャ店向けの台メンテナンス管理アプリ',
     start_url: '/',
     scope: '/',
     display: 'standalone',
@@ -14,13 +14,13 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ['productivity'],
     icons: [
       {
-        src: '/icon?size=192',
+        src: '/icon.png',
         sizes: '192x192',
         type: 'image/png',
-        purpose: 'any',
+        purpose: 'any maskable',
       },
       {
-        src: '/apple-icon?size=180',
+        src: '/apple-icon.png',
         sizes: '180x180',
         type: 'image/png',
         purpose: 'any',
