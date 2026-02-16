@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation';
 import { ChevronRight, Trash2, Flame, Sliders } from 'lucide-react';
 import { Stand } from '@/lib/db';
 import { getActiveStands, createStand, recordAction, endSession, getAllFlavors, getSessionStartTime } from '@/lib/domain';
+import { ActionTypeDisplay } from '@/components/stand/ActionTypeDisplay';
+import { ElapsedTimeDisplay } from '@/components/stand/ElapsedTimeDisplay';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { UPDATE_INTERVAL } from '@/lib/utils/constants';
 
 export default function StandListPage() {
   const router = useRouter();
@@ -26,7 +30,7 @@ export default function StandListPage() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(Date.now());
-    }, 60000); // 1分ごとに更新
+    }, UPDATE_INTERVAL);
 
     return () => clearInterval(timer);
   }, []);
@@ -80,6 +84,7 @@ export default function StandListPage() {
       setShowFlavorList(false);
       setShowForm(false);
       await loadStands();
+      await loadFlavors();
     } catch (err) {
       console.error('Failed to create stand:', err);
     }
@@ -153,45 +158,27 @@ export default function StandListPage() {
                   {stand.lastActionType && stand.lastActionAt && (
                     <div className="flex items-center gap-1">
                       <span className="font-medium">最終メンテ:</span>{' '}
-                      {stand.lastActionType === 'create' && (
-                        <>
-                          <span>新規追加</span>
-                        </>
-                      )}
-                      {stand.lastActionType === 'ash' && (
-                        <>
-                          <Trash2 size={14} className="neon-cyan inline" />
-                          <span>すす捨て</span>
-                        </>
-                      )}
-                      {stand.lastActionType === 'coal' && (
-                        <>
-                          <Flame size={14} className="neon-pink inline" />
-                          <span>炭交換</span>
-                        </>
-                      )}
-                      {stand.lastActionType === 'adjust' && (
-                        <>
-                          <Sliders size={14} className="neon-purple inline" />
-                          <span>調整</span>
-                        </>
-                      )}
+                      <ActionTypeDisplay actionType={stand.lastActionType} size={14} showLabel />
                       {' '}
-                      {(() => {
-                        const elapsed = Math.floor((currentTime - stand.lastActionAt) / 60000);
-                        const colorClass = elapsed > 15 ? 'text-red-400 font-semibold' : elapsed > 10 ? 'text-yellow-400 font-semibold' : '';
-                        return <span className={colorClass}>{elapsed < 1 ? '1分前' : `${elapsed}分前`}</span>;
-                      })()}
+                      <ElapsedTimeDisplay
+                        timestamp={stand.lastActionAt}
+                        currentTime={currentTime}
+                        variant="ago"
+                        showWarning
+                      />
                     </div>
                   )}
                   <div>
                     <span className="font-medium">経過時間:</span>{' '}
-                    {(() => {
-                      const startTime = sessionStartTimes[stand.id];
-                      if (!startTime) return '—';
-                      const elapsed = Math.floor((currentTime - startTime) / 60000);
-                      return <span>{elapsed < 1 ? '1分' : `${elapsed}分`}</span>;
-                    })()}
+                    {sessionStartTimes[stand.id] ? (
+                      <ElapsedTimeDisplay
+                        timestamp={sessionStartTimes[stand.id]}
+                        currentTime={currentTime}
+                        variant="duration"
+                      />
+                    ) : (
+                      '—'
+                    )}
                   </div>
                 </div>
 
@@ -343,35 +330,17 @@ export default function StandListPage() {
       )}
 
       {/* End Session Confirmation Modal */}
-      {confirmEndSession && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-800 rounded-lg p-6 max-w-sm w-full border-2 border-red-800">
-            <h2 className="text-xl font-semibold text-slate-50 mb-4">
-              セッション終了の確認
-            </h2>
-            <p className="text-slate-300 mb-6">
-              {(() => {
-                const stand = stands.find(s => s.id === confirmEndSession);
-                return `${stand?.number}番台${stand?.flavor ? ` ${stand.flavor}` : ''}`;
-              })()}
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={confirmEndSessionAction}
-                className="flex-1 px-4 py-2 bg-red-900/30 text-red-400 rounded-lg hover:bg-red-900/50 font-medium border border-red-800 transition-all"
-              >
-                終了する
-              </button>
-              <button
-                onClick={() => setConfirmEndSession(null)}
-                className="flex-1 px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-cyan hover:shadow-lg transition-all"
-              >
-                <span className="neon-cyan">キャンセル</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationModal
+        isOpen={!!confirmEndSession}
+        onClose={() => setConfirmEndSession(null)}
+        onConfirm={confirmEndSessionAction}
+        title="セッション終了の確認"
+        message={(() => {
+          const stand = stands.find(s => s.id === confirmEndSession);
+          return `${stand?.number}番台${stand?.flavor ? ` ${stand.flavor}` : ''}`;
+        })()}
+        variant="danger"
+      />
     </main>
   );
 }

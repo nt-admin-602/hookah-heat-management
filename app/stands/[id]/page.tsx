@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Edit2, Power, Trash2, Flame, Sliders } from 'lucide-react';
+import { ArrowLeft, Edit2, Power } from 'lucide-react';
 import { Stand, Event } from '@/lib/db';
 import {
   getStand,
@@ -14,6 +14,12 @@ import {
   updateStandFlavor,
   getSessionStartTime,
 } from '@/lib/domain';
+import { ActionTypeDisplay } from '@/components/stand/ActionTypeDisplay';
+import { ElapsedTimeDisplay } from '@/components/stand/ElapsedTimeDisplay';
+import { QuickActionButtons } from '@/components/stand/QuickActionButtons';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { formatTime } from '@/lib/utils/time';
+import { UPDATE_INTERVAL } from '@/lib/utils/constants';
 
 export default function StandDetailPage() {
   const router = useRouter();
@@ -36,7 +42,7 @@ export default function StandDetailPage() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(Date.now());
-    }, 60000); // 1分ごとに更新
+    }, UPDATE_INTERVAL);
 
     return () => clearInterval(timer);
   }, []);
@@ -92,24 +98,6 @@ export default function StandDetailPage() {
     }
     setEditingField(null);
     await loadData();
-  };
-
-  const formatTime = (timestamp?: number) => {
-    if (!timestamp) return '記録なし';
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const getEventLabel = (type: Event['type']) => {
-    const labels: Record<Event['type'], string> = {
-      create: '新規追加',
-      ash: 'すす捨て',
-      coal: '炭交換',
-      adjust: '調整',
-      note: 'メモ',
-      end: 'セッション終了',
-    };
-    return labels[type];
   };
 
   if (loading) {
@@ -248,44 +236,27 @@ export default function StandDetailPage() {
               {stand.lastActionType && stand.lastActionAt && (
                 <div className="flex items-center gap-1">
                   <span className="font-medium">最終メンテ:</span>{' '}
-                  {stand.lastActionType === 'create' && (
-                    <>
-                      <span>新規追加</span>
-                    </>
-                  )}
-                  {stand.lastActionType === 'ash' && (
-                    <>
-                      <Trash2 size={14} className="neon-cyan inline" />
-                      <span>すす捨て</span>
-                    </>
-                  )}
-                  {stand.lastActionType === 'coal' && (
-                    <>
-                      <Flame size={14} className="neon-pink inline" />
-                      <span>炭交換</span>
-                    </>
-                  )}
-                  {stand.lastActionType === 'adjust' && (
-                    <>
-                      <Sliders size={14} className="neon-purple inline" />
-                      <span>調整</span>
-                    </>
-                  )}
+                  <ActionTypeDisplay actionType={stand.lastActionType} size={14} showLabel />
                   {' '}
-                  {(() => {
-                    const elapsed = Math.floor((currentTime - stand.lastActionAt) / 60000);
-                    const colorClass = elapsed > 15 ? 'text-red-400 font-semibold' : elapsed > 10 ? 'text-yellow-400 font-semibold' : '';
-                    return <span className={colorClass}>{elapsed < 1 ? '1分前' : `${elapsed}分前`}</span>;
-                  })()}
+                  <ElapsedTimeDisplay
+                    timestamp={stand.lastActionAt}
+                    currentTime={currentTime}
+                    variant="ago"
+                    showWarning
+                  />
                 </div>
               )}
               <div>
                 <span className="font-medium">経過時間:</span>{' '}
-                {(() => {
-                  if (!sessionStartTime) return '—';
-                  const elapsed = Math.floor((currentTime - sessionStartTime) / 60000);
-                  return <span>{elapsed < 1 ? '1分' : `${elapsed}分`}</span>;
-                })()}
+                {sessionStartTime ? (
+                  <ElapsedTimeDisplay
+                    timestamp={sessionStartTime}
+                    currentTime={currentTime}
+                    variant="duration"
+                  />
+                ) : (
+                  '—'
+                )}
               </div>
             </div>
           </div>
@@ -295,29 +266,7 @@ export default function StandDetailPage() {
       {/* Quick Actions */}
       {stand.status === 'active' && (
         <div className="mb-6">
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={() => handleQuickAction('ash')}
-              className="px-3 py-2 text-xs bg-slate-900 rounded hover:shadow-lg font-medium flex flex-col items-center gap-1 neon-border-cyan transition-all"
-            >
-              <Trash2 size={24} className="neon-cyan" />
-              <span className="neon-cyan">すす捨て</span>
-            </button>
-            <button
-              onClick={() => handleQuickAction('coal')}
-              className="px-3 py-2 text-xs bg-slate-900 rounded hover:shadow-lg font-medium flex flex-col items-center gap-1 neon-border-pink transition-all"
-            >
-              <Flame size={24} className="neon-pink" />
-              <span className="neon-pink">炭交換</span>
-            </button>
-            <button
-              onClick={() => handleQuickAction('adjust')}
-              className="px-3 py-2 text-xs bg-slate-900 rounded hover:shadow-lg font-medium flex flex-col items-center gap-1 neon-border-purple transition-all"
-            >
-              <Sliders size={24} className="neon-purple" />
-              <span className="neon-purple">調整</span>
-            </button>
-          </div>
+          <QuickActionButtons onAction={handleQuickAction} />
         </div>
       )}
 
@@ -335,45 +284,22 @@ export default function StandDetailPage() {
               <div key={event.id} className="p-3 bg-slate-800 rounded border border-slate-700">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-1 font-medium text-slate-50">
-                    {event.type === 'create' && (
-                      <span>{getEventLabel(event.type)}</span>
-                    )}
-                    {event.type === 'ash' && (
-                      <>
-                        <Trash2 size={14} className="neon-cyan inline" />
-                        <span>{getEventLabel(event.type)}</span>
-                      </>
-                    )}
-                    {event.type === 'coal' && (
-                      <>
-                        <Flame size={14} className="neon-pink inline" />
-                        <span>{getEventLabel(event.type)}</span>
-                      </>
-                    )}
-                    {event.type === 'adjust' && (
-                      <>
-                        <Sliders size={14} className="neon-purple inline" />
-                        <span>{getEventLabel(event.type)}</span>
-                      </>
-                    )}
-                    {event.type === 'note' && (
-                      <span>{getEventLabel(event.type)}</span>
-                    )}
-                    {event.type === 'end' && (
-                      <>
-                        <Power size={14} className="text-red-400 inline" />
-                        <span>{getEventLabel(event.type)}</span>
-                      </>
-                    )}
+                    <ActionTypeDisplay actionType={event.type} size={14} showLabel />
                   </div>
                   <span className="text-xs text-slate-400">
                     {formatTime(event.at)}
-                    {' '}
-                    {(() => {
-                      if (!event.at) return '';
-                      const elapsed = Math.floor((currentTime - event.at) / 60000);
-                      return `(${elapsed < 1 ? '1分前' : `${elapsed}分前`})`;
-                    })()}
+                    {event.at && (
+                      <>
+                        {' '}
+                        (
+                        <ElapsedTimeDisplay
+                          timestamp={event.at}
+                          currentTime={currentTime}
+                          variant="ago"
+                        />
+                        )
+                      </>
+                    )}
                   </span>
                 </div>
                 {event.memo && (
@@ -399,32 +325,14 @@ export default function StandDetailPage() {
       )}
 
       {/* End Session Confirmation Modal */}
-      {showConfirmEnd && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-800 rounded-lg p-6 max-w-sm w-full border-2 border-red-800">
-            <h2 className="text-xl font-semibold text-slate-50 mb-4">
-              セッション終了の確認
-            </h2>
-            <p className="text-slate-300 mb-6">
-              {stand?.number}番台{stand?.flavor ? ` ${stand.flavor}` : ''}
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={confirmEndSession}
-                className="flex-1 px-4 py-2 bg-red-900/30 text-red-400 rounded-lg hover:bg-red-900/50 font-medium border border-red-800 transition-all"
-              >
-                終了する
-              </button>
-              <button
-                onClick={() => setShowConfirmEnd(false)}
-                className="flex-1 px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-cyan hover:shadow-lg transition-all"
-              >
-                <span className="neon-cyan">キャンセル</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationModal
+        isOpen={showConfirmEnd}
+        onClose={() => setShowConfirmEnd(false)}
+        onConfirm={confirmEndSession}
+        title="セッション終了の確認"
+        message={`${stand?.number}番台${stand?.flavor ? ` ${stand.flavor}` : ''}`}
+        variant="danger"
+      />
     </main>
   );
 }
