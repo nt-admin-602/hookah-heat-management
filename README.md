@@ -1,239 +1,68 @@
-# Hookah Heat Management
+# 熾火守（オキビモリ） - Hookah Heat Management
 
 シーシャ店向けの台メンテナンス管理PWAアプリケーション
 
-## 概要
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-このアプリケーションは、シーシャ店のスタッフが各台のメンテナンス状況を簡単に記録・追跡できるように設計されています。すす捨て、炭交換、調整などの作業を素早く記録し、経過時間を視覚的に確認できます。
+## 📖 ドキュメント
 
-## 技術スタック
+- **[コンセプト](docs/CONCEPT.md)** - プロジェクトの背景、ユースケース、デザインフィロソフィー
+- **[仕様書](docs/SPECIFICATION.md)** - 機能仕様、データモデル、デザイン仕様
+- **[テスト仕様](e2e/TEST_SPEC.md)** - E2Eテストシナリオと検証項目
 
-- **フレームワーク**: Next.js 15 (App Router)
-- **言語**: TypeScript
-- **スタイリング**: Tailwind CSS (ネオンサイバーパンクテーマ)
-- **データベース**: IndexedDB (Dexie.js)
-- **PWA**: Next.js PWA機能、動的アイコン生成
-- **アイコン**: lucide-react
+## ✨ 主要機能
 
-## 主要機能
+- 🎯 **ワンタップ記録**: すす捨て・炭交換・調整を素早く記録
+- ⏱️ **経過時間の視覚化**: 10分超過で黄色、15分超過で赤色表示
+- 📱 **PWA対応**: ホーム画面に追加してオフラインで利用可能
+- 📊 **履歴管理**: 各台のメンテナンス履歴を自動保存
+- 🎨 **ネオンUI**: 暗い店内でも見やすいサイバーパンクデザイン
 
-### セッション管理
-- 1-9番台の選択
-- フレーバー名の記録（履歴からの選択機能付き）
-- セッションの追加・終了
+## 🚀 クイックスタート
 
-### メンテナンス記録
-- すす捨て（シアン）
-- 炭交換（ピンク）
-- 調整（パープル）
-- 各操作のタイムスタンプ記録
+### 前提条件
 
-### 経過時間の視覚化
-- 自動更新（1分間隔）
-- 10分超過: 黄色表示
-- 15分超過: 赤色表示
+- Node.js 20以上
+- npm または yarn
 
-### 詳細画面
-- フレーバー・メモのインライン編集
-- 履歴表示（最新10件）
-- アイコン付きイベント表示
-
-## アーキテクチャ設計
-
-### ディレクトリ構造
-
-```
-app/
-├── page.tsx                    # メイン画面（セッション一覧）
-├── stands/[id]/page.tsx        # 詳細画面
-├── layout.tsx                  # ルートレイアウト
-├── globals.css                 # グローバルスタイル（ネオンカラー定義）
-├── icon.tsx                    # PWAアイコン（動的生成）
-├── apple-icon.tsx              # Appleアイコン（動的生成）
-└── manifest.ts                 # PWAマニフェスト
-
-lib/
-├── db.ts                       # IndexedDB スキーマ定義
-└── domain.ts                   # ビジネスロジック層
-```
-
-### データモデル
-
-#### Stand（セッション）
-```typescript
-interface Stand {
-  id: string;                   // UUID
-  number: number;                // 台番号（1-9）
-  flavor?: string;               // フレーバー名
-  note?: string;                 // メモ
-  status: 'active' | 'ended';    // セッション状態
-  lastActionType?: 'create' | 'ash' | 'coal' | 'adjust';
-  lastActionAt?: number;         // 最終操作時刻（Unix timestamp）
-  endedAt?: number;              // 終了時刻
-}
-```
-
-#### Event（履歴）
-```typescript
-interface Event {
-  id: string;                    // UUID
-  standId: string;               // 関連するStandのID
-  type: 'create' | 'ash' | 'coal' | 'adjust' | 'note' | 'end';
-  at: number;                    // 発生時刻（Unix timestamp）
-  memo?: string;                 // メモ（オプション）
-}
-```
-
-### レイヤー構造
-
-1. **UIレイヤー** (`app/`)
-   - React Serverコンポーネントとクライアントコンポーネント
-   - すべてのページは `'use client'` ディレクティブを使用
-   - リアルタイム更新のための `useState` + `useEffect`
-
-2. **ドメイン層** (`lib/domain.ts`)
-   - ビジネスロジックの集約
-   - データベース操作の抽象化
-   - 主要関数:
-     - `createStand()`: セッション作成 + 初期イベント記録
-     - `recordAction()`: メンテナンス操作記録
-     - `endSession()`: セッション終了
-     - `updateStandFlavor()`, `updateStandNote()`: インライン編集
-     - `getAllFlavors()`: フレーバー履歴取得
-
-3. **データアクセス層** (`lib/db.ts`)
-   - Dexieによるスキーマ定義
-   - IndexedDB操作
-
-## デザインシステム
-
-### ネオンカラーパレット
-
-```css
-.neon-cyan { color: #22d3ee; }         /* すす捨て */
-.neon-pink { color: #ec4899; }         /* 炭交換 */
-.neon-purple { color: #a855f7; }       /* 調整 */
-.neon-green { color: #22c55e; }        /* フレーバー名 */
-
-.neon-border-cyan { border-color: #22d3ee; }
-.neon-border-pink { border-color: #ec4899; }
-.neon-border-purple { border-color: #a855f7; }
-```
-
-### UI原則
-
-1. **一貫性**: すべてのボタンとアイコンに同じネオンカラーを使用
-2. **視認性**: 経過時間の色分けで緊急度を一目で把握
-3. **効率性**: クイックアクションボタンで1タップでメンテナンス記録
-4. **モバイルファースト**: PWAとしてホーム画面に追加可能
-
-## 実装の重要ポイント
-
-### 1. リアルタイム更新
-
-```typescript
-// 1分ごとに経過時間を自動更新
-useEffect(() => {
-  const timer = setInterval(() => {
-    setCurrentTime(Date.now());
-  }, 60000);
-  return () => clearInterval(timer);
-}, []);
-```
-
-### 2. 経過時間の色分け
-
-```typescript
-const elapsed = stand.lastActionAt
-  ? Math.floor((currentTime - stand.lastActionAt) / 60000)
-  : null;
-const colorClass = elapsed === null ? ''
-  : elapsed > 15 ? 'text-red-400 font-semibold'
-  : elapsed > 10 ? 'text-yellow-400 font-semibold'
-  : '';
-```
-
-### 3. トランザクション整合性
-
-セッション作成時に Stand と Event を同時に作成:
-
-```typescript
-await db.stands.add(stand);
-await db.events.add(event);
-```
-
-### 4. ソート
-
-台番号順にソート（アクティブセッションのみ）:
-
-```typescript
-stands.sort((a, b) => a.number - b.number);
-```
-
-## PWA設定
-
-### マニフェスト (`app/manifest.ts`)
-
-- **name**: Hookah Heat Management
-- **short_name**: HeatMemo
-- **display**: standalone
-- **theme_color**: #0f172a（ダークブルー）
-- **orientation**: portrait-primary
-
-### アイコン生成
-
-動的に生成されるアイコン:
-- `/icon?size=192`: 192x192 PWAアイコン
-- `/apple-icon?size=180`: 180x180 Appleアイコン
-
-## 開発ガイドライン
-
-### コミット規約
-
-- feat: 新機能追加
-- fix: バグ修正
-- style: スタイリング変更
-- refactor: リファクタリング
-- Co-Authored-By: Claude <noreply@anthropic.com> を含める
-
-### スタイリング原則
-
-1. 既存のネオンカラーパレットを使用
-2. hover状態には `transition-colors` または `transition-all` を適用
-3. ボタンには `neon-border-*` クラスを使用
-4. アイコンサイズ: 大ボタン24px、インライン14px、ナビゲーション18px
-
-### データ操作原則
-
-1. すべてのデータベース操作は `lib/domain.ts` を経由
-2. UIコンポーネントで直接 `db` をインポートしない
-3. エラーハンドリングは console.error で記録
-
-## ビルド & デプロイ
+### セットアップ
 
 ```bash
-# 開発サーバー起動
-npm run dev
+# リポジトリをクローン
+git clone https://github.com/yourusername/hookah-heat-management.git
+cd hookah-heat-management
 
-# プロダクションビルド
+# 依存関係をインストール
+npm install
+
+# 開発サーバーを起動
+npm run dev
+```
+
+ブラウザで http://localhost:3000 を開いて確認してください。
+
+### プロダクションビルド
+
+```bash
+# ビルド
 npm run build
 
-# プロダクション起動
+# 起動
 npm start
 ```
 
-## テスト
+## 🧪 テスト
 
-### 単体テスト（Jest + React Testing Library）
+### 単体テスト
 
 ```bash
-# すべての単体テストを実行
+# すべてのテストを実行
 npm test
 
-# ウォッチモードで実行
+# ウォッチモード
 npm run test:watch
 
-# カバレッジレポートを生成
+# カバレッジレポート
 npm run test:coverage
 ```
 
@@ -242,69 +71,170 @@ npm run test:coverage
 - 再利用可能コンポーネント（ActionTypeDisplay、ElapsedTimeDisplay、ConfirmationModal）
 - 100%の関数カバレッジを達成
 
-### E2Eテスト（Playwright）
+### E2Eテスト
 
 ```bash
-# Playwrightブラウザをインストール（初回のみ）
+# Playwrightをセットアップ（初回のみ）
 npx playwright install
 
 # E2Eテストを実行
 npm run test:e2e
 
-# UIモードで実行（デバッグ用）
+# UIモード（デバッグ用）
 npm run test:e2e:ui
 
-# ヘッド付きモードで実行（ブラウザを表示）
+# ヘッド付きモード
 npm run test:e2e:headed
 ```
 
-**テスト項目:**
-1. 初期表示の確認
-2. セッション作成（フレーバー有/無）
-3. クイックアクション実行（すす捨て/炭交換/調整）
-4. 詳細ページ遷移と操作
-5. セッション終了フロー
-6. フレーバー履歴管理
-7. データ永続性（ページリロード後）
-8. 複数セッション管理
-9. PWA機能（manifest, icons）
+**テストカバレッジ:**
+21テスト（初期表示、セッション管理、クイックアクション、詳細画面、PWA機能など）
 
-詳細なテスト仕様は `e2e/TEST_SPEC.md` を参照してください。
+## 🛠️ 技術スタック
 
+| カテゴリ | 技術 |
+|---------|------|
+| フレームワーク | Next.js 15 (App Router) |
+| 言語 | TypeScript |
+| スタイリング | Tailwind CSS |
+| データベース | IndexedDB (Dexie.js) |
+| テスト | Jest, React Testing Library, Playwright |
+| アイコン | lucide-react |
 
-## ブラウザ対応
+## 📁 プロジェクト構造
+
+```
+hookah-heat-management/
+├── app/                      # Next.js App Router
+│   ├── page.tsx             # メイン画面（セッション一覧）
+│   ├── stands/[id]/         # 詳細画面
+│   ├── layout.tsx           # ルートレイアウト
+│   ├── globals.css          # グローバルスタイル
+│   └── manifest.ts          # PWAマニフェスト
+├── components/              # 再利用可能コンポーネント
+│   ├── stand/              # セッション関連コンポーネント
+│   └── ui/                 # UIコンポーネント
+├── lib/                     # ビジネスロジック
+│   ├── db.ts               # IndexedDB スキーマ
+│   ├── domain.ts           # ドメインロジック
+│   └── utils/              # ユーティリティ
+├── docs/                    # ドキュメント
+│   ├── CONCEPT.md          # コンセプト
+│   └── SPECIFICATION.md    # 仕様書
+└── e2e/                     # E2Eテスト
+```
+
+## 🎨 デザインシステム
+
+### ネオンカラーパレット
+
+| 用途 | カラー | コード |
+|-----|-------|--------|
+| すす捨て | シアン | `#22d3ee` |
+| 炭交換 | ピンク | `#ec4899` |
+| 調整 | パープル | `#a855f7` |
+| フレーバー | グリーン | `#22c55e` |
+| 追加 | イエロー | `#fbbf24` |
+| 警告 | レッド | `#ef4444` |
+
+詳細は [仕様書](docs/SPECIFICATION.md#デザイン仕様) を参照してください。
+
+## 🔧 開発ガイドライン
+
+### コミット規約
+
+```
+<type>: <subject>
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+**Type:**
+- `feat`: 新機能追加
+- `fix`: バグ修正
+- `style`: スタイリング変更
+- `refactor`: リファクタリング
+- `test`: テスト追加・修正
+- `docs`: ドキュメント更新
+
+### コーディング規約
+
+1. **DRY原則**: 重複コードは共通化
+2. **型安全**: TypeScriptの型を最大限活用
+3. **コンポーネント分割**: 責務ごとに適切に分割
+4. **アクセシビリティ**: セマンティックHTMLとARIAラベル
+5. **テスト**: 新機能には必ずテストを追加
+
+### データベース操作
+
+- ✅ `lib/domain.ts` の関数を使用
+- ❌ UIコンポーネントで直接 `db` をインポートしない
+
+### スタイリング
+
+- 既存のネオンカラーパレットを使用
+- hover状態には `transition-colors` を適用
+- アイコンサイズ: 大ボタン24px、インライン14px
+
+## 🌐 ブラウザ対応
 
 - Chrome/Edge (推奨)
 - Safari (iOS PWA対応)
 - Firefox
 
-IndexedDB対応ブラウザが必要です。
+**必須機能:**
+- IndexedDB サポート
+- ES2020+ サポート
 
-## 今後の拡張可能性
+## 🐛 デバッグ
 
-- [ ] データエクスポート機能（CSV/JSON）
-- [ ] 統計ダッシュボード
-- [ ] 通知機能（15分超過時）
-- [ ] マルチ店舗対応
-- [ ] クラウド同期
+### IndexedDB
 
-## ライセンス
+Chrome DevTools > Application > IndexedDB > `HookahHeatManagement`
 
-MIT
+### PWAテスト
 
-## 開発者向けメモ
+1. `localhost:3000` でアクセス
+2. Chrome: 「アプリをインストール」をクリック
+3. iOS Safari: 共有アイコン > 「ホーム画面に追加」
 
-### Next.js 15 注意点
+## 🗺️ ロードマップ
 
-- `viewport` は `metadata` から分離して export する
-- `maximumScale: 1` でズーム無効化（モバイルUX向上）
+### 現在（フェーズ1）✅
+- 基本的なセッション管理
+- メンテナンス記録機能
+- 経過時間の視覚化
+- PWA対応
+- 包括的なテストスイート
 
-### IndexedDB デバッグ
+### 次期（フェーズ2）🔜
+- 📊 統計ダッシュボード
+- 📤 データエクスポート（CSV/JSON）
+- 🔔 プッシュ通知
+- 🎨 カスタムテーマ
 
-Chrome DevTools > Application > IndexedDB > HookahHeatManagement
+### 将来（フェーズ3）💭
+- ☁️ クラウド同期
+- 🏢 マルチ店舗対応
+- 📈 AI最適化提案
+- 👥 スタッフ間コミュニケーション
 
-### PWA テスト
+詳細は [コンセプト](docs/CONCEPT.md#今後の展望) を参照してください。
 
-1. localhost:3000 でアクセス
-2. Chrome: 「アプリをインストール」
-3. iOS Safari: 「ホーム画面に追加」
+## 📄 ライセンス
+
+MIT License - 詳細は [LICENSE](LICENSE) ファイルを参照してください。
+
+## 🤝 コントリビューション
+
+プルリクエストを歓迎します！大きな変更の場合は、まずissueを開いて変更内容を議論してください。
+
+## 🔗 リンク
+
+- [GitHub Repository](#)
+- [Issue Tracker](#)
+- [Changelog](CHANGELOG.md)
+
+---
+
+Made with ❤️ for Hookah Lounges
