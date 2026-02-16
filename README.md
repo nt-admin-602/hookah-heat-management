@@ -222,6 +222,56 @@ npm run build
 npm start
 ```
 
+## テスト
+
+### 単体テスト（Jest + React Testing Library）
+
+```bash
+# すべての単体テストを実行
+npm test
+
+# ウォッチモードで実行
+npm run test:watch
+
+# カバレッジレポートを生成
+npm run test:coverage
+```
+
+**テスト対象:**
+- ユーティリティ関数（時間計算、フォーマット）
+- 再利用可能コンポーネント（ActionTypeDisplay、ElapsedTimeDisplay、ConfirmationModal）
+- 100%の関数カバレッジを達成
+
+### E2Eテスト（Playwright）
+
+```bash
+# Playwrightブラウザをインストール（初回のみ）
+npx playwright install
+
+# E2Eテストを実行
+npm run test:e2e
+
+# UIモードで実行（デバッグ用）
+npm run test:e2e:ui
+
+# ヘッド付きモードで実行（ブラウザを表示）
+npm run test:e2e:headed
+```
+
+**テスト項目:**
+1. 初期表示の確認
+2. セッション作成（フレーバー有/無）
+3. クイックアクション実行（すす捨て/炭交換/調整）
+4. 詳細ページ遷移と操作
+5. セッション終了フロー
+6. フレーバー履歴管理
+7. データ永続性（ページリロード後）
+8. 複数セッション管理
+9. PWA機能（manifest, icons）
+
+詳細なテスト仕様は `e2e/TEST_SPEC.md` を参照してください。
+
+
 ## ブラウザ対応
 
 - Chrome/Edge (推奨)
