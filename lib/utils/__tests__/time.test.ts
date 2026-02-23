@@ -8,16 +8,16 @@ import {
 
 describe('time utilities', () => {
   describe('calculateElapsedMinutes', () => {
-    it('should return 1 for 1 second elapsed', () => {
+    it('should return 0 for 1 second elapsed', () => {
       const now = Date.now();
       const past = now - 1000; // 1秒前
-      expect(calculateElapsedMinutes(past, now)).toBe(1);
+      expect(calculateElapsedMinutes(past, now)).toBe(0);
     });
 
-    it('should return 1 for 59 seconds elapsed', () => {
+    it('should return 0 for 59 seconds elapsed', () => {
       const now = Date.now();
       const past = now - 59000; // 59秒前
-      expect(calculateElapsedMinutes(past, now)).toBe(1);
+      expect(calculateElapsedMinutes(past, now)).toBe(0);
     });
 
     it('should return 1 for 60 seconds elapsed', () => {
@@ -26,10 +26,10 @@ describe('time utilities', () => {
       expect(calculateElapsedMinutes(past, now)).toBe(1);
     });
 
-    it('should return 2 for 61 seconds elapsed', () => {
+    it('should return 1 for 61 seconds elapsed', () => {
       const now = Date.now();
       const past = now - 61000; // 61秒前
-      expect(calculateElapsedMinutes(past, now)).toBe(2);
+      expect(calculateElapsedMinutes(past, now)).toBe(1);
     });
 
     it('should return 15 for 15 minutes elapsed', () => {
@@ -45,8 +45,8 @@ describe('time utilities', () => {
   });
 
   describe('formatElapsedTime', () => {
-    it('should return "1分前" for 0 minutes', () => {
-      expect(formatElapsedTime(0)).toBe('1分前');
+    it('should return "0分前" for 0 minutes', () => {
+      expect(formatElapsedTime(0)).toBe('0分前');
     });
 
     it('should return "1分前" for 1 minute', () => {
@@ -67,8 +67,8 @@ describe('time utilities', () => {
   });
 
   describe('formatDuration', () => {
-    it('should return "1分" for 0 minutes', () => {
-      expect(formatDuration(0)).toBe('1分');
+    it('should return "0分" for 0 minutes', () => {
+      expect(formatDuration(0)).toBe('0分');
     });
 
     it('should return "1分" for 1 minute', () => {
@@ -93,8 +93,8 @@ describe('time utilities', () => {
       expect(getElapsedTimeColorClass(9)).toBe('');
     });
 
-    it('should return empty string for exactly 10 minutes', () => {
-      expect(getElapsedTimeColorClass(10)).toBe('');
+    it('should return yellow class for exactly 10 minutes', () => {
+      expect(getElapsedTimeColorClass(10)).toBe('text-yellow-400 font-semibold');
     });
 
     it('should return yellow class for 11 minutes', () => {
@@ -105,8 +105,8 @@ describe('time utilities', () => {
       expect(getElapsedTimeColorClass(14)).toBe('text-yellow-400 font-semibold');
     });
 
-    it('should return yellow class for exactly 15 minutes', () => {
-      expect(getElapsedTimeColorClass(15)).toBe('text-yellow-400 font-semibold');
+    it('should return red class for exactly 15 minutes', () => {
+      expect(getElapsedTimeColorClass(15)).toBe('text-red-400 font-semibold');
     });
 
     it('should return red class for 16 minutes', () => {

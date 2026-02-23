@@ -1,14 +1,36 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, Trash2, Flame, Sliders } from 'lucide-react';
+import { ChevronRight, Trash2, Flame, Sliders, Settings } from 'lucide-react';
 import { Stand } from '@/lib/db';
 import { getActiveStands, createStand, recordAction, endSession, getAllFlavors, getSessionStartTime } from '@/lib/domain';
 import { ActionTypeDisplay } from '@/components/stand/ActionTypeDisplay';
 import { ElapsedTimeDisplay } from '@/components/stand/ElapsedTimeDisplay';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { SettingsModal } from '@/components/ui/SettingsModal';
 import { UPDATE_INTERVAL } from '@/lib/utils/constants';
+import { loadSettings, saveSettings, AppSettings } from '@/lib/utils/settings';
+import { calculateElapsedMinutes } from '@/lib/utils/time';
+
+function playNotificationSound() {
+  try {
+    const ctx = new AudioContext();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+    oscillator.frequency.setValueAtTime(660, ctx.currentTime + 0.15);
+    gainNode.gain.setValueAtTime(0.4, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.6);
+  } catch {
+    // AudioContext not available
+  }
+}
 
 export default function StandListPage() {
   const router = useRouter();
@@ -21,6 +43,13 @@ export default function StandListPage() {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [sessionStartTimes, setSessionStartTimes] = useState<Record<string, number>>({});
   const [confirmEndSession, setConfirmEndSession] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
+
+  // Track which stand IDs were already in critical state (to avoid repeat sounds)
+  const criticalStandIdsRef = useRef<Set<string>>(new Set());
+  // Flag to skip sound on initial load
+  const initialLoadDoneRef = useRef(false);
 
   useEffect(() => {
     loadStands();
@@ -34,6 +63,31 @@ export default function StandListPage() {
 
     return () => clearInterval(timer);
   }, []);
+
+  // Check for newly critical stands when time or stands change
+  useEffect(() => {
+    if (!initialLoadDoneRef.current || stands.length === 0) return;
+
+    const now = Date.now();
+    const newCritical = new Set<string>();
+
+    stands.forEach((stand) => {
+      if (stand.lastActionAt) {
+        const elapsed = calculateElapsedMinutes(stand.lastActionAt, now);
+        if (elapsed >= settings.criticalThreshold) {
+          newCritical.add(stand.id);
+        }
+      }
+    });
+
+    // Find stands that just became critical
+    const newlyRed = [...newCritical].filter((id) => !criticalStandIdsRef.current.has(id));
+    if (newlyRed.length > 0 && settings.notificationEnabled) {
+      playNotificationSound();
+    }
+
+    criticalStandIdsRef.current = newCritical;
+  }, [currentTime, stands, settings.criticalThreshold, settings.notificationEnabled]);
 
   useEffect(() => {
     if (!showForm) {
@@ -58,6 +112,20 @@ export default function StandListPage() {
         })
       );
       setSessionStartTimes(startTimes);
+
+      // Initialize critical state without playing sound
+      const now = Date.now();
+      const initialCritical = new Set<string>();
+      data.forEach((stand) => {
+        if (stand.lastActionAt) {
+          const elapsed = calculateElapsedMinutes(stand.lastActionAt, now);
+          if (elapsed >= settings.criticalThreshold) {
+            initialCritical.add(stand.id);
+          }
+        }
+      });
+      criticalStandIdsRef.current = initialCritical;
+      initialLoadDoneRef.current = true;
     } catch (err) {
       console.error('Failed to load stands:', err);
     } finally {
@@ -94,6 +162,8 @@ export default function StandListPage() {
     e.stopPropagation();
     try {
       await recordAction(standId, actionType);
+      // Stand is no longer critical after action
+      criticalStandIdsRef.current.delete(standId);
       await loadStands();
     } catch (err) {
       console.error('Action failed:', err);
@@ -110,11 +180,29 @@ export default function StandListPage() {
 
     try {
       await endSession(confirmEndSession);
+      criticalStandIdsRef.current.delete(confirmEndSession);
       await loadStands();
       setConfirmEndSession(null);
     } catch (err) {
       console.error('End session failed:', err);
     }
+  };
+
+  const handleSaveSettings = (newSettings: AppSettings) => {
+    setSettings(newSettings);
+    saveSettings(newSettings);
+    // Re-initialize critical stands with new threshold
+    const now = Date.now();
+    const updatedCritical = new Set<string>();
+    stands.forEach((stand) => {
+      if (stand.lastActionAt) {
+        const elapsed = calculateElapsedMinutes(stand.lastActionAt, now);
+        if (elapsed >= newSettings.criticalThreshold) {
+          updatedCritical.add(stand.id);
+        }
+      }
+    });
+    criticalStandIdsRef.current = updatedCritical;
   };
 
   return (
@@ -124,12 +212,21 @@ export default function StandListPage() {
           <h1 className="text-3xl font-light neon-red font-[family-name:var(--font-stick)]">オキビモリ</h1>
           <p className="text-sm text-slate-400"></p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-yellow hover:shadow-lg transition-all"
-        >
-          <span className="neon-yellow">セッション追加</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-yellow hover:shadow-lg transition-all"
+          >
+            <span className="neon-yellow">セッション追加</span>
+          </button>
+          <button
+            onClick={() => setShowSettings(true)}
+            className="p-2 bg-slate-900 rounded-lg neon-border-purple hover:shadow-lg transition-all"
+            title="設定"
+          >
+            <Settings size={20} className="neon-purple" />
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -165,6 +262,8 @@ export default function StandListPage() {
                         currentTime={currentTime}
                         variant="ago"
                         showWarning
+                        warningThreshold={settings.warningThreshold}
+                        criticalThreshold={settings.criticalThreshold}
                       />
                     </div>
                   )}
@@ -340,6 +439,14 @@ export default function StandListPage() {
           return `${stand?.number}番台${stand?.flavor ? ` ${stand.flavor}` : ''}`;
         })()}
         variant="danger"
+      />
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        settings={settings}
+        onSave={handleSaveSettings}
       />
     </main>
   );

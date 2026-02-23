@@ -12,6 +12,8 @@ interface ElapsedTimeDisplayProps {
   currentTime: number;
   variant: 'ago' | 'duration';
   showWarning?: boolean;
+  warningThreshold?: number;
+  criticalThreshold?: number;
 }
 
 export function ElapsedTimeDisplay({
@@ -19,11 +21,15 @@ export function ElapsedTimeDisplay({
   currentTime,
   variant,
   showWarning = false,
+  warningThreshold,
+  criticalThreshold,
 }: ElapsedTimeDisplayProps) {
   const elapsed = calculateElapsedMinutes(timestamp, currentTime);
   const formattedTime =
     variant === 'ago' ? formatElapsedTime(elapsed) : formatDuration(elapsed);
-  const colorClass = showWarning ? getElapsedTimeColorClass(elapsed) : '';
+  const colorClass = showWarning
+    ? getElapsedTimeColorClass(elapsed, warningThreshold, criticalThreshold)
+    : '';
 
   return <span className={colorClass}>{formattedTime}</span>;
 }
