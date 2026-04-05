@@ -6,7 +6,7 @@ export interface Stand {
   flavor?: string;
   note?: string;
   status: 'active' | 'ended';
-  lastActionType?: 'create' | 'ash' | 'coal' | 'adjust';
+  lastActionType?: 'create' | 'steam' | 'coal' | 'adjust';
   lastActionAt?: number;
   endedAt?: number;
 }
@@ -14,7 +14,7 @@ export interface Stand {
 export interface Event {
   id: string;
   standId: string;
-  type: 'create' | 'ash' | 'coal' | 'adjust' | 'note' | 'end';
+  type: 'create' | 'steam' | 'coal' | 'adjust' | 'note' | 'end';
   at: number;
   memo?: string;
 }
