@@ -23,16 +23,35 @@ export function SettingsModal({ isOpen, onClose, settings, onSave }: SettingsMod
 
   const warningVal = Number(local.warningThreshold);
   const criticalVal = Number(local.criticalThreshold);
+  const flatVal = Number(local.coalWarningTime.flat);
+  const cubeVal = Number(local.coalWarningTime.cube);
+  const hexaVal = Number(local.coalWarningTime.hexa);
+
   const isValid =
     !isNaN(warningVal) &&
     !isNaN(criticalVal) &&
     warningVal >= 1 &&
     criticalVal >= 1 &&
-    warningVal < criticalVal;
+    warningVal < criticalVal &&
+    !isNaN(flatVal) &&
+    !isNaN(cubeVal) &&
+    !isNaN(hexaVal) &&
+    flatVal >= 1 &&
+    cubeVal >= 1 &&
+    hexaVal >= 1;
 
   const handleSave = () => {
     if (!isValid) return;
-    onSave({ ...local, warningThreshold: warningVal, criticalThreshold: criticalVal });
+    onSave({
+      ...local,
+      warningThreshold: warningVal,
+      criticalThreshold: criticalVal,
+      coalWarningTime: {
+        flat: flatVal,
+        cube: cubeVal,
+        hexa: hexaVal,
+      },
+    });
     onClose();
   };
 
@@ -111,6 +130,85 @@ export function SettingsModal({ isOpen, onClose, settings, onSave }: SettingsMod
             {!isValid && (
               <p className="text-xs text-red-400">黄色 &lt; 赤色 になるよう設定してください</p>
             )}
+          </div>
+
+          <div className="border-t border-slate-700" />
+
+          {/* Coal warning time */}
+          <div className="space-y-3">
+            <p className="text-xs text-slate-400">炭の警告時間</p>
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-200">
+                <span className="text-yellow-400 font-medium">フラット</span>
+              </span>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  min={1}
+                  value={local.coalWarningTime.flat}
+                  onChange={(e) =>
+                    setLocal({
+                      ...local,
+                      coalWarningTime: {
+                        ...local.coalWarningTime,
+                        flat: e.target.value as unknown as number,
+                      },
+                    })
+                  }
+                  className={`${inputClass} border-yellow-400`}
+                />
+                <span className="text-xs text-slate-400">分</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-200">
+                <span className="text-pink-400 font-medium">キューブ</span>
+              </span>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  min={1}
+                  value={local.coalWarningTime.cube}
+                  onChange={(e) =>
+                    setLocal({
+                      ...local,
+                      coalWarningTime: {
+                        ...local.coalWarningTime,
+                        cube: e.target.value as unknown as number,
+                      },
+                    })
+                  }
+                  className={`${inputClass} border-pink-400`}
+                />
+                <span className="text-xs text-slate-400">分</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-200">
+                <span className="text-purple-400 font-medium">ヘキサ</span>
+              </span>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  min={1}
+                  value={local.coalWarningTime.hexa}
+                  onChange={(e) =>
+                    setLocal({
+                      ...local,
+                      coalWarningTime: {
+                        ...local.coalWarningTime,
+                        hexa: e.target.value as unknown as number,
+                      },
+                    })
+                  }
+                  className={`${inputClass} border-purple-400`}
+                />
+                <span className="text-xs text-slate-400">分</span>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -6,6 +6,11 @@ export interface AppSettings {
   notificationEnabled: boolean;
   warningThreshold: number;  // minutes before yellow
   criticalThreshold: number; // minutes before red
+  coalWarningTime: {
+    flat: number;   // フラット
+    cube: number;   // キューブ
+    hexa: number;   // ヘキサ
+  };
 }
 
 const SETTINGS_KEY = 'hookah-settings';
@@ -14,6 +19,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
   notificationEnabled: false,
   warningThreshold: 10,
   criticalThreshold: 15,
+  coalWarningTime: {
+    flat: 8,
+    cube: 10,
+    hexa: 12,
+  },
 };
 
 export function loadSettings(): AppSettings {

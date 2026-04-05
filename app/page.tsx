@@ -2,16 +2,19 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, Hourglass, Flame, Sliders, Settings } from 'lucide-react';
-import { Stand } from '@/lib/db';
+import { ChevronRight, Hourglass, Flame, Sliders, Settings, Square, Box, Hexagon } from 'lucide-react';
+import { Stand, Coal } from '@/lib/db';
 import { getActiveStands, createStand, recordAction, endSession, getAllFlavors, getSessionStartTime } from '@/lib/domain';
+import { createCoal, completeCoal, getPreparingCoals } from '@/lib/coal-domain';
 import { ActionTypeDisplay } from '@/components/stand/ActionTypeDisplay';
 import { ElapsedTimeDisplay } from '@/components/stand/ElapsedTimeDisplay';
+import { CoalTypeDisplay } from '@/components/coal/CoalTypeDisplay';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { SettingsModal } from '@/components/ui/SettingsModal';
 import { UPDATE_INTERVAL } from '@/lib/utils/constants';
 import { loadSettings, saveSettings, AppSettings } from '@/lib/utils/settings';
 import { calculateElapsedMinutes } from '@/lib/utils/time';
+import type { CoalType } from '@/lib/types/coal';
 
 function playNotificationSound() {
   try {
@@ -35,8 +38,10 @@ function playNotificationSound() {
 export default function StandListPage() {
   const router = useRouter();
   const [stands, setStands] = useState<Stand[]>([]);
+  const [coals, setCoals] = useState<Coal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showAddCoalModal, setShowAddCoalModal] = useState(false);
   const [formData, setFormData] = useState({ number: '', flavor: '' });
   const [flavors, setFlavors] = useState<string[]>([]);
   const [showFlavorList, setShowFlavorList] = useState(false);
@@ -48,12 +53,15 @@ export default function StandListPage() {
 
   // Track which stand IDs were already in critical state (to avoid repeat sounds)
   const criticalStandIdsRef = useRef<Set<string>>(new Set());
+  // Track which coal IDs were already warned (to avoid repeat sounds)
+  const warnedCoalIdsRef = useRef<Set<string>>(new Set());
   // Flag to skip sound on initial load
   const initialLoadDoneRef = useRef(false);
 
   useEffect(() => {
     loadStands();
     loadFlavors();
+    loadCoals();
   }, []);
 
   useEffect(() => {
@@ -88,6 +96,30 @@ export default function StandListPage() {
 
     criticalStandIdsRef.current = newCritical;
   }, [currentTime, stands, settings.criticalThreshold, settings.notificationEnabled]);
+
+  // Check for coals that reached warning time
+  useEffect(() => {
+    if (!initialLoadDoneRef.current || coals.length === 0) return;
+
+    const now = Date.now();
+    const newWarned = new Set<string>();
+
+    coals.forEach((coal) => {
+      const elapsedMinutes = calculateElapsedMinutes(coal.startedAt, now);
+      const warningTime = settings.coalWarningTime[coal.type];
+      if (elapsedMinutes >= warningTime) {
+        newWarned.add(coal.id);
+      }
+    });
+
+    // Find coals that just reached warning time
+    const newlyWarned = [...newWarned].filter((id) => !warnedCoalIdsRef.current.has(id));
+    if (newlyWarned.length > 0 && settings.notificationEnabled) {
+      playNotificationSound();
+    }
+
+    warnedCoalIdsRef.current = newWarned;
+  }, [currentTime, coals, settings.coalWarningTime, settings.notificationEnabled]);
 
   useEffect(() => {
     if (!showForm) {
@@ -142,6 +174,15 @@ export default function StandListPage() {
     }
   };
 
+  const loadCoals = async () => {
+    try {
+      const data = await getPreparingCoals();
+      setCoals(data);
+    } catch (err) {
+      console.error('Failed to load coals:', err);
+    }
+  };
+
   const handleCreateStand = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.number) return;
@@ -188,6 +229,26 @@ export default function StandListPage() {
     }
   };
 
+  const handleAddCoal = async (type: CoalType) => {
+    try {
+      await createCoal(type);
+      setShowAddCoalModal(false);
+      await loadCoals();
+    } catch (err) {
+      console.error('Failed to create coal:', err);
+    }
+  };
+
+  const handleCompleteCoal = async (coalId: string) => {
+    try {
+      await completeCoal(coalId);
+      warnedCoalIdsRef.current.delete(coalId);
+      await loadCoals();
+    } catch (err) {
+      console.error('Failed to complete coal:', err);
+    }
+  };
+
   const handleSaveSettings = (newSettings: AppSettings) => {
     setSettings(newSettings);
     saveSettings(newSettings);
@@ -205,6 +266,24 @@ export default function StandListPage() {
     criticalStandIdsRef.current = updatedCritical;
   };
 
+  // Create unified list of stands and coals, sorted by oldest first
+  type Item =
+    | { type: 'stand'; data: Stand; timestamp: number }
+    | { type: 'coal'; data: Coal; timestamp: number };
+
+  const unifiedItems: Item[] = [
+    ...stands.map(stand => ({
+      type: 'stand' as const,
+      data: stand,
+      timestamp: stand.lastActionAt || stand.endedAt || Date.now(),
+    })),
+    ...coals.map(coal => ({
+      type: 'coal' as const,
+      data: coal,
+      timestamp: coal.startedAt,
+    })),
+  ].sort((a, b) => a.timestamp - b.timestamp); // Oldest first
+
   return (
     <main className="flex-1 max-w-2xl mx-auto w-full p-4">
       <div className="mb-6 flex items-center justify-between">
@@ -213,6 +292,12 @@ export default function StandListPage() {
           <p className="text-sm text-slate-400"></p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowAddCoalModal(true)}
+            className="px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-cyan hover:shadow-lg transition-all"
+          >
+            <span className="neon-cyan">炭準備</span>
+          </button>
           <button
             onClick={() => setShowForm(!showForm)}
             className="px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-yellow hover:shadow-lg transition-all"
@@ -233,14 +318,42 @@ export default function StandListPage() {
         <div className="flex items-center justify-center py-12">
           <p className="text-slate-400">読込中...</p>
         </div>
-      ) : stands.length === 0 ? (
+      ) : unifiedItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 gap-4">
-          <p className="text-slate-400">まず、セッションを追加してみてください♪</p>
+          <p className="text-slate-400">まず、セッションまたは炭準備を追加してみてください♪</p>
         </div>
       ) : (
         <>
           <div className="grid gap-4 mb-6">
-            {stands.map((stand) => (
+            {unifiedItems.map((item) => {
+              if (item.type === 'coal') {
+                const coal = item.data;
+                return (
+                  <div key={`coal-${coal.id}`} className="p-4 bg-slate-800 rounded-lg border border-slate-700">
+                    <div className="flex items-center justify-between gap-4">
+                      <CoalTypeDisplay type={coal.type} size={20} />
+                      <div className="flex-1 text-right">
+                        <ElapsedTimeDisplay
+                          timestamp={coal.startedAt}
+                          currentTime={currentTime}
+                          variant="ago"
+                          showWarning
+                          warningThreshold={settings.coalWarningTime[coal.type]}
+                          criticalThreshold={settings.coalWarningTime[coal.type]}
+                        />
+                      </div>
+                      <button
+                        onClick={() => handleCompleteCoal(coal.id)}
+                        className="px-4 py-2 bg-green-900/30 text-green-400 rounded hover:bg-green-900/50 font-medium border border-green-800 transition-all whitespace-nowrap"
+                      >
+                        完了
+                      </button>
+                    </div>
+                  </div>
+                );
+              } else {
+                const stand = item.data;
+                return (
               <div key={stand.id} className="p-4 bg-slate-800 rounded-lg border border-slate-700 hover:border-blue-400 hover:shadow-sm transition-all">
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-2xl font-semibold neon-cyan">
@@ -325,7 +438,9 @@ export default function StandListPage() {
                   <p className="text-sm text-slate-300 mt-3 italic border-t border-slate-700 pt-3">{stand.note}</p>
                 )}
               </div>
-            ))}
+                );
+              }
+            })}
           </div>
         </>
       )}
@@ -424,6 +539,48 @@ export default function StandListPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Coal Modal */}
+      {showAddCoalModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-800 rounded-lg p-6 max-w-sm w-full border border-slate-700">
+            <h2 className="text-xl font-semibold text-slate-50 mb-4">
+              炭の準備を開始
+            </h2>
+
+            <div className="grid grid-cols-1 gap-3 mb-4">
+              <button
+                className="py-4 neon-border-yellow rounded-lg hover:shadow-lg transition-all"
+                onClick={() => handleAddCoal('flat')}
+              >
+                <Square size={32} className="mx-auto mb-1 neon-yellow" />
+                <span className="neon-yellow text-lg font-semibold">フラット</span>
+              </button>
+              <button
+                className="py-4 neon-border-pink rounded-lg hover:shadow-lg transition-all"
+                onClick={() => handleAddCoal('cube')}
+              >
+                <Box size={32} className="mx-auto mb-1 neon-pink" />
+                <span className="neon-pink text-lg font-semibold">キューブ</span>
+              </button>
+              <button
+                className="py-4 neon-border-purple rounded-lg hover:shadow-lg transition-all"
+                onClick={() => handleAddCoal('hexa')}
+              >
+                <Hexagon size={32} className="mx-auto mb-1 neon-purple" />
+                <span className="neon-purple text-lg font-semibold">ヘキサ</span>
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowAddCoalModal(false)}
+              className="w-full px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-cyan hover:shadow-lg transition-all"
+            >
+              <span className="neon-cyan">キャンセル</span>
+            </button>
           </div>
         </div>
       )}
