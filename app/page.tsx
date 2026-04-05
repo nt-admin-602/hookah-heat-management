@@ -302,7 +302,7 @@ export default function StandListPage() {
             onClick={() => setShowForm(!showForm)}
             className="px-4 py-2 bg-slate-900 rounded-lg font-medium neon-border-yellow hover:shadow-lg transition-all"
           >
-            <span className="neon-yellow">セッション追加</span>
+            <span className="neon-yellow">台追加</span>
           </button>
           <button
             onClick={() => setShowSettings(true)}
