@@ -37,12 +37,12 @@ test.describe('Detail Page and Session End', () => {
     await expect(page).toHaveURL(/\/stands\/[a-zA-Z0-9]+/);
 
     // クイックアクションを実行
-    await page.locator('button').filter({ hasText: 'すす捨て' }).first().click();
+    await page.locator('button').filter({ hasText: '蒸らし' }).first().click();
     await page.waitForTimeout(500);
 
     // 履歴に追加されることを確認
     const historySection = page.locator('text=履歴 (最新10件)').locator('..');
-    await expect(historySection.getByText('すす捨て')).toBeVisible();
+    await expect(historySection.getByText('蒸らし')).toBeVisible();
   });
 
   test('should go back to main page', async ({ page }) => {

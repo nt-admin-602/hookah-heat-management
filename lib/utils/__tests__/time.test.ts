@@ -111,28 +111,28 @@ describe('time utilities', () => {
   });
 
   describe('formatDuration', () => {
-    it('should return "0秒" for 0 seconds', () => {
-      expect(formatDuration(0)).toBe('0秒');
+    it('should return "0分" for 0 seconds', () => {
+      expect(formatDuration(0)).toBe('0分');
     });
 
-    it('should return "30秒" for 30 seconds', () => {
-      expect(formatDuration(30)).toBe('30秒');
+    it('should return "0分" for 30 seconds', () => {
+      expect(formatDuration(30)).toBe('0分');
     });
 
-    it('should return "1分0秒" for 60 seconds', () => {
-      expect(formatDuration(60)).toBe('1分0秒');
+    it('should return "1分" for 60 seconds', () => {
+      expect(formatDuration(60)).toBe('1分');
     });
 
-    it('should return "1分30秒" for 90 seconds', () => {
-      expect(formatDuration(90)).toBe('1分30秒');
+    it('should return "1分" for 90 seconds', () => {
+      expect(formatDuration(90)).toBe('1分');
     });
 
-    it('should return "30分0秒" for 1800 seconds', () => {
-      expect(formatDuration(1800)).toBe('30分0秒');
+    it('should return "30分" for 1800 seconds', () => {
+      expect(formatDuration(1800)).toBe('30分');
     });
 
-    it('should return "120分0秒" for 7200 seconds', () => {
-      expect(formatDuration(7200)).toBe('120分0秒');
+    it('should return "120分" for 7200 seconds', () => {
+      expect(formatDuration(7200)).toBe('120分');
     });
   });
 

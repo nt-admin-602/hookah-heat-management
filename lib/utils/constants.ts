@@ -4,7 +4,7 @@
 
 export const ACTION_TYPES = {
   CREATE: 'create',
-  ASH: 'ash',
+  STEAM: 'steam',
   COAL: 'coal',
   ADJUST: 'adjust',
   NOTE: 'note',
@@ -13,7 +13,7 @@ export const ACTION_TYPES = {
 
 export const ACTION_LABELS: Record<string, string> = {
   create: '新規追加',
-  ash: 'すす捨て',
+  steam: '蒸らし',
   coal: '炭交換',
   adjust: '調整',
   note: 'メモ',

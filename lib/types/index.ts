@@ -6,7 +6,7 @@
 export type { Stand, Event } from '../db';
 
 // Action types
-export type ActionType = 'create' | 'ash' | 'coal' | 'adjust';
+export type ActionType = 'create' | 'steam' | 'coal' | 'adjust';
 export type EventType = ActionType | 'note' | 'end';
 
 // UI variants

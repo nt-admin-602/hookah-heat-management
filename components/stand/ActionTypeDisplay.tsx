@@ -1,6 +1,6 @@
 'use client';
 
-import { Trash2, Flame, Sliders } from 'lucide-react';
+import { Hourglass, Flame, Sliders } from 'lucide-react';
 import { ActionType } from '@/lib/types';
 import { ACTION_LABELS } from '@/lib/utils/constants';
 
@@ -23,11 +23,11 @@ export function ActionTypeDisplay({
     switch (actionType) {
       case 'create':
         return showLabel ? <span>新規追加</span> : null;
-      case 'ash':
+      case 'steam':
         return (
           <>
-            <Trash2 size={size} className="neon-cyan" />
-            {showLabel && <span>すす捨て</span>}
+            <Hourglass size={size} className="neon-green" />
+            {showLabel && <span>蒸らし</span>}
           </>
         );
       case 'coal':

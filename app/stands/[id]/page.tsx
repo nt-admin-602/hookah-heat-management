@@ -63,7 +63,7 @@ export default function StandDetailPage() {
     }
   };
 
-  const handleQuickAction = async (actionType: 'ash' | 'coal' | 'adjust') => {
+  const handleQuickAction = async (actionType: 'steam' | 'coal' | 'adjust') => {
     try {
       await recordAction(standId, actionType);
       await loadData();
@@ -233,7 +233,7 @@ export default function StandDetailPage() {
           {/* Last Action */}
           <div className="text-sm text-slate-400 border-t border-slate-700 pt-4">
             <div className="flex gap-6 mb-2">
-              {stand.lastActionType && stand.lastActionAt && (
+              {stand.lastActionType && stand.lastActionAt && stand.lastActionType !== 'create' && (
                 <div className="flex items-center gap-1">
                   <span className="font-medium">最終メンテ:</span>{' '}
                   <ActionTypeDisplay actionType={stand.lastActionType} size={14} showLabel />

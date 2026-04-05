@@ -6,11 +6,11 @@ function generateId(): string {
 }
 
 /**
- * Record an action on a stand (ash, coal, adjust, note)
+ * Record an action on a stand (steam, coal, adjust, note)
  */
 export async function recordAction(
   standId: string,
-  type: 'ash' | 'coal' | 'adjust' | 'note',
+  type: 'steam' | 'coal' | 'adjust' | 'note',
   memo?: string
 ): Promise<void> {
   const now = Date.now();
@@ -30,7 +30,7 @@ export async function recordAction(
 
   await db.events.add(event);
   await db.stands.update(standId, {
-    lastActionType: type === 'note' ? stand.lastActionType : (type as 'ash' | 'coal' | 'adjust'),
+    lastActionType: type === 'note' ? stand.lastActionType : (type as 'steam' | 'coal' | 'adjust'),
     lastActionAt: now,
   });
 }
@@ -156,14 +156,14 @@ export async function getAllFlavors(): Promise<string[]> {
 }
 
 /**
- * Get the session start time (create event timestamp) for a stand
+ * Get the session start time (steam event timestamp) for a stand
  */
 export async function getSessionStartTime(standId: string): Promise<number | null> {
-  const createEvent = await db.events
+  const steamEvent = await db.events
     .where('standId')
     .equals(standId)
-    .and((event) => event.type === 'create')
+    .and((event) => event.type === 'steam')
     .first();
 
-  return createEvent?.at ?? null;
+  return steamEvent?.at ?? null;
 }

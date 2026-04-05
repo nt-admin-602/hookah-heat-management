@@ -3,9 +3,9 @@ import { ActionTypeDisplay } from '../ActionTypeDisplay';
 
 describe('ActionTypeDisplay', () => {
   describe('with showLabel=true', () => {
-    it('should display ash icon and label', () => {
-      render(<ActionTypeDisplay actionType="ash" showLabel />);
-      expect(screen.getByText('すす捨て')).toBeInTheDocument();
+    it('should display steam icon and label', () => {
+      render(<ActionTypeDisplay actionType="steam" showLabel />);
+      expect(screen.getByText('蒸らし')).toBeInTheDocument();
     });
 
     it('should display coal icon and label', () => {
@@ -35,9 +35,9 @@ describe('ActionTypeDisplay', () => {
   });
 
   describe('with showLabel=false', () => {
-    it('should not display label for ash', () => {
-      render(<ActionTypeDisplay actionType="ash" showLabel={false} />);
-      expect(screen.queryByText('すす捨て')).not.toBeInTheDocument();
+    it('should not display label for steam', () => {
+      render(<ActionTypeDisplay actionType="steam" showLabel={false} />);
+      expect(screen.queryByText('蒸らし')).not.toBeInTheDocument();
     });
 
     it('should not display label for coal', () => {
@@ -64,13 +64,13 @@ describe('ActionTypeDisplay', () => {
 
     it('should apply custom className', () => {
       const { container } = render(
-        <ActionTypeDisplay actionType="ash" showLabel className="custom-class" />
+        <ActionTypeDisplay actionType="steam" showLabel className="custom-class" />
       );
       expect(container.firstChild).toHaveClass('custom-class');
     });
 
     it('should have inline-flex layout', () => {
-      const { container } = render(<ActionTypeDisplay actionType="ash" showLabel />);
+      const { container } = render(<ActionTypeDisplay actionType="steam" showLabel />);
       expect(container.firstChild).toHaveClass('inline-flex');
       expect(container.firstChild).toHaveClass('items-center');
       expect(container.firstChild).toHaveClass('gap-1');
@@ -79,14 +79,14 @@ describe('ActionTypeDisplay', () => {
 
   describe('icon sizes', () => {
     it('should use default size of 14', () => {
-      const { container } = render(<ActionTypeDisplay actionType="ash" showLabel />);
+      const { container } = render(<ActionTypeDisplay actionType="steam" showLabel />);
       const svg = container.querySelector('svg');
       expect(svg).toHaveAttribute('width', '14');
       expect(svg).toHaveAttribute('height', '14');
     });
 
     it('should use custom size', () => {
-      const { container } = render(<ActionTypeDisplay actionType="ash" showLabel size={24} />);
+      const { container } = render(<ActionTypeDisplay actionType="steam" showLabel size={24} />);
       const svg = container.querySelector('svg');
       expect(svg).toHaveAttribute('width', '24');
       expect(svg).toHaveAttribute('height', '24');

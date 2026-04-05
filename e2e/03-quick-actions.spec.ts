@@ -17,17 +17,17 @@ test.describe('Quick Actions', () => {
     await expect(page.getByText('1番台')).toBeVisible();
   });
 
-  test('should perform ash action', async ({ page }) => {
-    // すす捨てボタンをクリック
-    const ashButton = page.locator('button').filter({ hasText: 'すす捨て' }).first();
-    await ashButton.click();
+  test('should perform steam action', async ({ page }) => {
+    // 蒸らしボタンをクリック
+    const steamButton = page.locator('button').filter({ hasText: '蒸らし' }).first();
+    await steamButton.click();
 
     // 少し待機
     await page.waitForTimeout(500);
 
     // 最終メンテが更新されることを確認
     const maintenanceSection = page.locator('text=最終メンテ:').locator('..');
-    await expect(maintenanceSection.getByText('すす捨て')).toBeVisible();
+    await expect(maintenanceSection.getByText('蒸らし')).toBeVisible();
   });
 
   test('should perform coal action', async ({ page }) => {
@@ -59,10 +59,10 @@ test.describe('Quick Actions', () => {
   test('should perform multiple actions in sequence', async ({ page }) => {
     const maintenanceSection = page.locator('text=最終メンテ:').locator('..');
 
-    // すす捨て
-    await page.locator('button').filter({ hasText: 'すす捨て' }).first().click();
+    // 蒸らし
+    await page.locator('button').filter({ hasText: '蒸らし' }).first().click();
     await page.waitForTimeout(500);
-    await expect(maintenanceSection.getByText('すす捨て')).toBeVisible();
+    await expect(maintenanceSection.getByText('蒸らし')).toBeVisible();
 
     // 炭交換
     await page.locator('button').filter({ hasText: '炭交換' }).first().click();

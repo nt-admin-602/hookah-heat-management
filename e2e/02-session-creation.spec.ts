@@ -32,11 +32,8 @@ test.describe('Session Creation', () => {
     await expect(page.getByText('1番台')).toBeVisible();
     await expect(page.getByText('ダブルアップル')).toBeVisible();
 
-    // 最終メンテ表示を確認
-    const maintenanceSection = page.locator('text=最終メンテ:').locator('..');
-    await expect(maintenanceSection).toBeVisible();
-    await expect(maintenanceSection.getByText('新規追加')).toBeVisible();
-    await expect(maintenanceSection.getByText(/\d+秒前|\d+分\d+秒前/)).toBeVisible();
+    // 最終メンテは表示されない（蒸らしをクリックするまで）
+    await expect(page.locator('text=最終メンテ:')).not.toBeVisible();
 
     // 経過時間表示を確認
     const timeSection = page.locator('text=経過時間:').locator('..');

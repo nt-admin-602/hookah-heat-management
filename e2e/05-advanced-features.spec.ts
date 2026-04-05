@@ -55,7 +55,7 @@ test.describe('Advanced Features', () => {
     await expect(page.getByText('1番台')).toBeVisible();
 
     // アクション実行
-    await page.locator('button').filter({ hasText: 'すす捨て' }).first().click();
+    await page.locator('button').filter({ hasText: '蒸らし' }).first().click();
     await page.waitForTimeout(500);
 
     // ページリロード
@@ -65,7 +65,7 @@ test.describe('Advanced Features', () => {
     await expect(page.getByText('1番台')).toBeVisible();
     await expect(page.getByText('ダブルアップル')).toBeVisible();
     const maintenanceSection = page.locator('text=最終メンテ:').locator('..');
-    await expect(maintenanceSection.getByText('すす捨て')).toBeVisible();
+    await expect(maintenanceSection.getByText('蒸らし')).toBeVisible();
 
     // 詳細ページへ移動
     await page.getByRole('button', { name: '詳細' }).click();
@@ -73,7 +73,7 @@ test.describe('Advanced Features', () => {
     // 履歴が保存されていることを確認
     await expect(page.getByText('履歴 (最新10件)')).toBeVisible();
     const historySection = page.locator('text=履歴 (最新10件)').locator('..');
-    await expect(historySection.getByText('すす捨て')).toBeVisible();
+    await expect(historySection.getByText('蒸らし')).toBeVisible();
   });
 
   test('should manage multiple sessions', async ({ page }) => {
@@ -95,12 +95,12 @@ test.describe('Advanced Features', () => {
     // 2番台のアクションを実行
     const standCards = page.locator('.p-4.bg-slate-800');
     const stand2Card = standCards.filter({ hasText: '2番台' });
-    await stand2Card.locator('button').filter({ hasText: 'すす捨て' }).click();
+    await stand2Card.locator('button').filter({ hasText: '蒸らし' }).click();
     await page.waitForTimeout(500);
 
     // 2番台の最終メンテが更新されることを確認
     const maintenance2Section = stand2Card.locator('text=最終メンテ:').locator('..');
-    await expect(maintenance2Section.getByText('すす捨て')).toBeVisible();
+    await expect(maintenance2Section.getByText('蒸らし')).toBeVisible();
   });
 
   test('should check PWA manifest', async ({ page }) => {

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, Trash2, Flame, Sliders, Settings } from 'lucide-react';
+import { ChevronRight, Hourglass, Flame, Sliders, Settings } from 'lucide-react';
 import { Stand } from '@/lib/db';
 import { getActiveStands, createStand, recordAction, endSession, getAllFlavors, getSessionStartTime } from '@/lib/domain';
 import { ActionTypeDisplay } from '@/components/stand/ActionTypeDisplay';
@@ -158,7 +158,7 @@ export default function StandListPage() {
     }
   };
 
-  const handleQuickAction = async (standId: string, actionType: 'ash' | 'coal' | 'adjust', e: React.MouseEvent) => {
+  const handleQuickAction = async (standId: string, actionType: 'steam' | 'coal' | 'adjust', e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       await recordAction(standId, actionType);
@@ -252,7 +252,7 @@ export default function StandListPage() {
                 </div>
 
                 <div className="flex gap-6 text-sm text-slate-400 mb-3">
-                  {stand.lastActionType && stand.lastActionAt && (
+                  {stand.lastActionType && stand.lastActionAt && stand.lastActionType !== 'create' && (
                     <div className="flex items-center gap-1">
                       <span className="font-medium">最終メンテ:</span>{' '}
                       <ActionTypeDisplay actionType={stand.lastActionType} size={14} showLabel />
@@ -283,11 +283,11 @@ export default function StandListPage() {
 
                 <div className="flex gap-2 mb-3">
                   <button
-                    onClick={(e) => handleQuickAction(stand.id, 'ash', e)}
-                    className="flex-1 px-3 py-2 text-xs bg-slate-900 rounded hover:shadow-lg font-medium flex flex-col items-center gap-1 neon-border-cyan transition-all"
+                    onClick={(e) => handleQuickAction(stand.id, 'steam', e)}
+                    className="flex-1 px-3 py-2 text-xs bg-slate-900 rounded hover:shadow-lg font-medium flex flex-col items-center gap-1 neon-border-green transition-all"
                   >
-                    <Trash2 size={24} className="neon-cyan" />
-                    <span className="neon-cyan">すす捨て</span>
+                    <Hourglass size={24} className="neon-green" />
+                    <span className="neon-green">蒸らし</span>
                   </button>
                   <button
                     onClick={(e) => handleQuickAction(stand.id, 'coal', e)}
