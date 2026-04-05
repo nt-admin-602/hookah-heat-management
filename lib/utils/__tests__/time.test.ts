@@ -1,4 +1,5 @@
 import {
+  calculateElapsedSeconds,
   calculateElapsedMinutes,
   formatElapsedTime,
   formatDuration,
@@ -7,6 +8,37 @@ import {
 } from '../time';
 
 describe('time utilities', () => {
+  describe('calculateElapsedSeconds', () => {
+    it('should return 0 for same timestamp', () => {
+      const now = Date.now();
+      expect(calculateElapsedSeconds(now, now)).toBe(0);
+    });
+
+    it('should return 1 for 1 second elapsed', () => {
+      const now = Date.now();
+      const past = now - 1000; // 1秒前
+      expect(calculateElapsedSeconds(past, now)).toBe(1);
+    });
+
+    it('should return 59 for 59 seconds elapsed', () => {
+      const now = Date.now();
+      const past = now - 59000; // 59秒前
+      expect(calculateElapsedSeconds(past, now)).toBe(59);
+    });
+
+    it('should return 60 for 60 seconds elapsed', () => {
+      const now = Date.now();
+      const past = now - 60000; // 60秒前
+      expect(calculateElapsedSeconds(past, now)).toBe(60);
+    });
+
+    it('should return 125 for 2 minutes 5 seconds elapsed', () => {
+      const now = Date.now();
+      const past = now - 125000;
+      expect(calculateElapsedSeconds(past, now)).toBe(125);
+    });
+  });
+
   describe('calculateElapsedMinutes', () => {
     it('should return 0 for 1 second elapsed', () => {
       const now = Date.now();
@@ -45,42 +77,62 @@ describe('time utilities', () => {
   });
 
   describe('formatElapsedTime', () => {
-    it('should return "0分前" for 0 minutes', () => {
-      expect(formatElapsedTime(0)).toBe('0分前');
+    it('should return "0秒前" for 0 seconds', () => {
+      expect(formatElapsedTime(0)).toBe('0秒前');
     });
 
-    it('should return "1分前" for 1 minute', () => {
-      expect(formatElapsedTime(1)).toBe('1分前');
+    it('should return "30秒前" for 30 seconds', () => {
+      expect(formatElapsedTime(30)).toBe('30秒前');
     });
 
-    it('should return "2分前" for 2 minutes', () => {
-      expect(formatElapsedTime(2)).toBe('2分前');
+    it('should return "59秒前" for 59 seconds', () => {
+      expect(formatElapsedTime(59)).toBe('59秒前');
     });
 
-    it('should return "10分前" for 10 minutes', () => {
-      expect(formatElapsedTime(10)).toBe('10分前');
+    it('should return "1分0秒前" for 60 seconds', () => {
+      expect(formatElapsedTime(60)).toBe('1分0秒前');
     });
 
-    it('should return "100分前" for 100 minutes', () => {
-      expect(formatElapsedTime(100)).toBe('100分前');
+    it('should return "1分30秒前" for 90 seconds', () => {
+      expect(formatElapsedTime(90)).toBe('1分30秒前');
+    });
+
+    it('should return "2分15秒前" for 135 seconds', () => {
+      expect(formatElapsedTime(135)).toBe('2分15秒前');
+    });
+
+    it('should return "10分0秒前" for 600 seconds', () => {
+      expect(formatElapsedTime(600)).toBe('10分0秒前');
+    });
+
+    it('should return "100分45秒前" for 6045 seconds', () => {
+      expect(formatElapsedTime(6045)).toBe('100分45秒前');
     });
   });
 
   describe('formatDuration', () => {
-    it('should return "0分" for 0 minutes', () => {
-      expect(formatDuration(0)).toBe('0分');
+    it('should return "0秒" for 0 seconds', () => {
+      expect(formatDuration(0)).toBe('0秒');
     });
 
-    it('should return "1分" for 1 minute', () => {
-      expect(formatDuration(1)).toBe('1分');
+    it('should return "30秒" for 30 seconds', () => {
+      expect(formatDuration(30)).toBe('30秒');
     });
 
-    it('should return "30分" for 30 minutes', () => {
-      expect(formatDuration(30)).toBe('30分');
+    it('should return "1分0秒" for 60 seconds', () => {
+      expect(formatDuration(60)).toBe('1分0秒');
     });
 
-    it('should return "120分" for 120 minutes', () => {
-      expect(formatDuration(120)).toBe('120分');
+    it('should return "1分30秒" for 90 seconds', () => {
+      expect(formatDuration(90)).toBe('1分30秒');
+    });
+
+    it('should return "30分0秒" for 1800 seconds', () => {
+      expect(formatDuration(1800)).toBe('30分0秒');
+    });
+
+    it('should return "120分0秒" for 7200 seconds', () => {
+      expect(formatDuration(7200)).toBe('120分0秒');
     });
   });
 

@@ -5,6 +5,16 @@
 import { TIME_THRESHOLDS } from './constants';
 
 /**
+ * Calculate elapsed time in seconds from a timestamp
+ */
+export function calculateElapsedSeconds(
+  timestamp: number,
+  currentTime: number = Date.now()
+): number {
+  return Math.max(0, Math.floor((currentTime - timestamp) / 1000));
+}
+
+/**
  * Calculate elapsed time in minutes from a timestamp
  */
 export function calculateElapsedMinutes(
@@ -15,17 +25,31 @@ export function calculateElapsedMinutes(
 }
 
 /**
- * Format elapsed time as "X分前" or "1分前"
+ * Format elapsed time as "X分Y秒前"
  */
-export function formatElapsedTime(minutes: number): string {
-  return `${minutes}分前`;
+export function formatElapsedTime(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+
+  if (minutes === 0) {
+    return `${remainingSeconds}秒前`;
+  }
+
+  return `${minutes}分${remainingSeconds}秒前`;
 }
 
 /**
- * Format elapsed time as "X分" or "1分" (for duration)
+ * Format elapsed time as "X分Y秒" (for duration)
  */
-export function formatDuration(minutes: number): string {
-  return `${minutes}分`;
+export function formatDuration(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+
+  if (minutes === 0) {
+    return `${remainingSeconds}秒`;
+  }
+
+  return `${minutes}分${remainingSeconds}秒`;
 }
 
 /**

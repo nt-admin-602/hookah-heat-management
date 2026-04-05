@@ -5,7 +5,7 @@ describe('ElapsedTimeDisplay', () => {
   const now = Date.now();
 
   describe('variant: ago', () => {
-    it('should display "0分前" for 30 seconds elapsed', () => {
+    it('should display "30秒前" for 30 seconds elapsed', () => {
       const timestamp = now - 30000;
       render(
         <ElapsedTimeDisplay
@@ -14,10 +14,10 @@ describe('ElapsedTimeDisplay', () => {
           variant="ago"
         />
       );
-      expect(screen.getByText('0分前')).toBeInTheDocument();
+      expect(screen.getByText('30秒前')).toBeInTheDocument();
     });
 
-    it('should display "1分前" for 60 seconds elapsed', () => {
+    it('should display "1分0秒前" for 60 seconds elapsed', () => {
       const timestamp = now - 60000;
       render(
         <ElapsedTimeDisplay
@@ -26,10 +26,10 @@ describe('ElapsedTimeDisplay', () => {
           variant="ago"
         />
       );
-      expect(screen.getByText('1分前')).toBeInTheDocument();
+      expect(screen.getByText('1分0秒前')).toBeInTheDocument();
     });
 
-    it('should display "1分前" for 61 seconds elapsed', () => {
+    it('should display "1分1秒前" for 61 seconds elapsed', () => {
       const timestamp = now - 61000;
       render(
         <ElapsedTimeDisplay
@@ -38,10 +38,10 @@ describe('ElapsedTimeDisplay', () => {
           variant="ago"
         />
       );
-      expect(screen.getByText('1分前')).toBeInTheDocument();
+      expect(screen.getByText('1分1秒前')).toBeInTheDocument();
     });
 
-    it('should display "10分前" for 10 minutes elapsed', () => {
+    it('should display "10分0秒前" for 10 minutes elapsed', () => {
       const timestamp = now - 10 * 60000;
       render(
         <ElapsedTimeDisplay
@@ -50,12 +50,24 @@ describe('ElapsedTimeDisplay', () => {
           variant="ago"
         />
       );
-      expect(screen.getByText('10分前')).toBeInTheDocument();
+      expect(screen.getByText('10分0秒前')).toBeInTheDocument();
+    });
+
+    it('should display "2分30秒前" for 150 seconds elapsed', () => {
+      const timestamp = now - 150000;
+      render(
+        <ElapsedTimeDisplay
+          timestamp={timestamp}
+          currentTime={now}
+          variant="ago"
+        />
+      );
+      expect(screen.getByText('2分30秒前')).toBeInTheDocument();
     });
   });
 
   describe('variant: duration', () => {
-    it('should display "0分" for 30 seconds elapsed', () => {
+    it('should display "30秒" for 30 seconds elapsed', () => {
       const timestamp = now - 30000;
       render(
         <ElapsedTimeDisplay
@@ -64,10 +76,10 @@ describe('ElapsedTimeDisplay', () => {
           variant="duration"
         />
       );
-      expect(screen.getByText('0分')).toBeInTheDocument();
+      expect(screen.getByText('30秒')).toBeInTheDocument();
     });
 
-    it('should display "15分" for 15 minutes elapsed', () => {
+    it('should display "15分0秒" for 15 minutes elapsed', () => {
       const timestamp = now - 15 * 60000;
       render(
         <ElapsedTimeDisplay
@@ -76,10 +88,10 @@ describe('ElapsedTimeDisplay', () => {
           variant="duration"
         />
       );
-      expect(screen.getByText('15分')).toBeInTheDocument();
+      expect(screen.getByText('15分0秒')).toBeInTheDocument();
     });
 
-    it('should display "120分" for 2 hours elapsed', () => {
+    it('should display "120分0秒" for 2 hours elapsed', () => {
       const timestamp = now - 120 * 60000;
       render(
         <ElapsedTimeDisplay
@@ -88,7 +100,19 @@ describe('ElapsedTimeDisplay', () => {
           variant="duration"
         />
       );
-      expect(screen.getByText('120分')).toBeInTheDocument();
+      expect(screen.getByText('120分0秒')).toBeInTheDocument();
+    });
+
+    it('should display "5分45秒" for 345 seconds elapsed', () => {
+      const timestamp = now - 345000;
+      render(
+        <ElapsedTimeDisplay
+          timestamp={timestamp}
+          currentTime={now}
+          variant="duration"
+        />
+      );
+      expect(screen.getByText('5分45秒')).toBeInTheDocument();
     });
   });
 

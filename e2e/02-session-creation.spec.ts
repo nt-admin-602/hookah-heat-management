@@ -36,7 +36,7 @@ test.describe('Session Creation', () => {
     const maintenanceSection = page.locator('text=最終メンテ:').locator('..');
     await expect(maintenanceSection).toBeVisible();
     await expect(maintenanceSection.getByText('新規追加')).toBeVisible();
-    await expect(maintenanceSection.getByText(/\d+分前/)).toBeVisible();
+    await expect(maintenanceSection.getByText(/\d+秒前|\d+分\d+秒前/)).toBeVisible();
 
     // 経過時間表示を確認
     const timeSection = page.locator('text=経過時間:').locator('..');

@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  calculateElapsedSeconds,
   calculateElapsedMinutes,
   formatElapsedTime,
   formatDuration,
@@ -24,11 +25,12 @@ export function ElapsedTimeDisplay({
   warningThreshold,
   criticalThreshold,
 }: ElapsedTimeDisplayProps) {
-  const elapsed = calculateElapsedMinutes(timestamp, currentTime);
+  const elapsedSeconds = calculateElapsedSeconds(timestamp, currentTime);
+  const elapsedMinutes = calculateElapsedMinutes(timestamp, currentTime);
   const formattedTime =
-    variant === 'ago' ? formatElapsedTime(elapsed) : formatDuration(elapsed);
+    variant === 'ago' ? formatElapsedTime(elapsedSeconds) : formatDuration(elapsedSeconds);
   const colorClass = showWarning
-    ? getElapsedTimeColorClass(elapsed, warningThreshold, criticalThreshold)
+    ? getElapsedTimeColorClass(elapsedMinutes, warningThreshold, criticalThreshold)
     : '';
 
   return <span className={colorClass}>{formattedTime}</span>;

@@ -25,4 +25,4 @@ export const TIME_THRESHOLDS = {
   CRITICAL: 15, // minutes
 } as const;
 
-export const UPDATE_INTERVAL = 60000; // 1 minute in ms
+export const UPDATE_INTERVAL = 1000; // 1 second in ms
